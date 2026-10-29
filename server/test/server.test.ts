@@ -169,24 +169,25 @@ test("the page is served at a pot's address, and health lists every pot", async 
 });
 
 test("the source is on offer: the release's own archive, or the repository", async () => {
-  const res = await fetch(`http://${base}/source`, { redirect: "manual" });
-  assert.equal(res.status, 302);
-  assert.equal(res.headers.get("location"), REPOSITORY);
+  const served = await fetch(`http://${base}/source`, { redirect: "manual" });
+  assert.ok([200, 302].includes(served.status));
+  await served.body?.cancel();
   const dir = mkdtempSync(join(tmpdir(), "release-"));
+  const release = createServer((_, res) => serveSource(res, dir));
+  await new Promise<void>((resolve) => release.listen(0, "127.0.0.1", resolve));
+  const source = () => fetch(`http://127.0.0.1:${(release.address() as AddressInfo).port}/source`, { redirect: "manual" });
   try {
+    const away = await source();
+    assert.equal(away.status, 302);
+    assert.equal(away.headers.get("location"), REPOSITORY);
     writeFileSync(join(dir, "source.tar.gz"), "archive");
     writeFileSync(join(dir, "COMMIT"), "0123456789abcdef\n");
-    const release = createServer((_, res) => serveSource(res, dir));
-    await new Promise<void>((resolve) => release.listen(0, "127.0.0.1", resolve));
-    try {
-      const res = await fetch(`http://127.0.0.1:${(release.address() as AddressInfo).port}/source`);
-      assert.equal(await res.text(), "archive");
-      assert.equal(res.headers.get("content-length"), "7");
-      assert.match(res.headers.get("content-disposition") ?? "", /eversimmer-0123456789ab\.tar\.gz/);
-    } finally {
-      release.close();
-    }
+    const res = await source();
+    assert.equal(await res.text(), "archive");
+    assert.equal(res.headers.get("content-length"), "7");
+    assert.match(res.headers.get("content-disposition") ?? "", /eversimmer-0123456789ab\.tar\.gz/);
   } finally {
+    release.close();
     rmSync(dir, { recursive: true, force: true });
   }
 });
