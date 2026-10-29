@@ -4,7 +4,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { WS_PATH } from "../../shared/protocol";
 import { STONE } from "../../shared/stone";
-import { POTS } from "./pots";
+import { POTS, SOON } from "./pots";
 import { potServer } from "./server";
 import { Validator } from "./validate";
 
@@ -23,6 +23,7 @@ const LIVE_CODER =
 const KEEP_STATE = process.env.KEEP_STATE || undefined;
 const wanted = process.env.POTS?.split(",").map((p) => p.trim());
 const pots = wanted ? wanted.map((id) => POTS.find((p) => p.id === id) ?? fail(`there is no pot called ${id}`)) : POTS;
+const soon = [...POTS.filter((p) => !pots.includes(p)).map(({ name, line = "" }) => ({ name, line })), ...SOON];
 
 const hasCredentials =
   ["ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_PROFILE"].some((k) => process.env[k]) ||
@@ -37,6 +38,7 @@ for (const stone of new Set(pots.map((p) => p.stone ?? STONE)))
 
 const server = potServer({
   pots,
+  soon,
   validator,
   client: hasCredentials ? new Anthropic() : undefined,
   devControls: DEV_CONTROLS,

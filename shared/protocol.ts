@@ -42,6 +42,9 @@ export type Sky = {
 
 export type Door = { name: string; talk: boolean; devControls: boolean; sky?: Sky };
 export const DOOR_PATH = "/door";
+export type Listing = { id?: string; name: string; line: string };
+export type Listings = { live: Listing[]; soon: Listing[] };
+export const POTS_PATH = "/pots";
 
 export type ServerMessage =
   | { t: "pong"; id: number; server: number }

@@ -6,7 +6,7 @@ import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { after, before, test } from "node:test";
 import { WebSocket } from "ws";
-import type { Door, ServerMessage, Sky } from "../../shared/protocol";
+import { POTS_PATH, type Door, type Listings, type ServerMessage, type Sky } from "../../shared/protocol";
 import { STONE } from "../../shared/stone";
 import { RESTING_BROTH } from "../../shared/types";
 import { POTS } from "../src/pots";
@@ -42,6 +42,7 @@ hum`;
 const validator = new Validator();
 const server = potServer({
   pots: [POTS[0], { id: "quiet", name: "Quiet", source: () => quiet, stone: QUIET_STONE }],
+  soon: [{ name: "Later", line: "Still steeping." }],
   validator,
   client: undefined,
   devControls: false,
@@ -166,6 +167,13 @@ test("the page is served at a pot's address, and health lists every pot", async 
   const health = (await (await fetch(`http://${base}/health`)).json()) as { pots: { pot: string }[] };
   assert.deepEqual(health.pots.map((p) => p.pot), ["potluck", "quiet"]);
   assert.notEqual((await fetch(`http://${base}/nowhere`)).status, 200);
+});
+
+test("the front page lists the pots that play and those still to come", async () => {
+  const pots = (await (await fetch(`http://${base}${POTS_PATH}`)).json()) as Listings;
+  assert.deepEqual(pots.live.map((p) => p.id), ["potluck", "quiet"]);
+  assert.equal(pots.live[0].line, POTS[0].line);
+  assert.deepEqual(pots.soon, [{ name: "Later", line: "Still steeping." }]);
 });
 
 test("the source is on offer: the release's own archive, or the repository", async () => {

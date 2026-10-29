@@ -1,13 +1,13 @@
 import { createServer, type IncomingMessage } from "node:http";
 import { WebSocket, WebSocketServer } from "ws";
-import { DOOR_PATH, WS_PATH, type ClientMessage } from "../../shared/protocol";
+import { DOOR_PATH, POTS_PATH, WS_PATH, type ClientMessage, type Listing, type Listings } from "../../shared/protocol";
 import { now } from "./pot";
 import { serveClient, serveSource } from "./static";
 import { send, Table, type PotKind, type Shared } from "./table";
 
 const HEARTBEAT_MS = 30_000;
 
-export function potServer({ pots, ...shared }: Shared & { pots: PotKind[] }) {
+export function potServer({ pots, soon = [], ...shared }: Shared & { pots: PotKind[]; soon?: Listing[] }) {
   const tables = new Map(pots.map((kind) => [kind.id, new Table(kind, shared)]));
   const home = pots[0].id;
   const startedAt = Date.now();
@@ -24,6 +24,16 @@ export function potServer({ pots, ...shared }: Shared & { pots: PotKind[] }) {
     if (door) {
       res.writeHead(200, { "content-type": "application/json", "cache-control": "no-cache" });
       res.end(JSON.stringify(door.door()));
+      return;
+    }
+    if (path === POTS_PATH) {
+      const listings: Listings = { live: pots.map(({ id, name, line = "" }) => ({ id, name, line })), soon };
+      res.writeHead(200, { "content-type": "application/json", "cache-control": "no-cache" });
+      res.end(JSON.stringify(listings));
+      return;
+    }
+    if (path === "/" && !shared.devControls) {
+      void serveClient("/home.html", res);
       return;
     }
     if (path === "/source") {

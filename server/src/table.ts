@@ -12,6 +12,7 @@ import type { Source, SourceContext } from "./source";
 import type { Validator } from "./validate";
 
 export type PotKind = PotName & PotMusic & {
+  line?: string;
   source: (table: SourceContext, client: Anthropic | undefined) => Source;
 };
 
