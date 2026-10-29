@@ -1,0 +1,60 @@
+import type { GenreFile } from "./index";
+
+export const spaceAmbient: GenreFile = {
+  region: {
+    id: "spaceAmbient",
+    name: "space ambient",
+    at: { energy: 0.08, texture: 0.8, colour: 0.4, strangeness: 0.45 },
+    bpm: 64,
+    character:
+      "cosmic ambient for a clear night: vast, cold and glistening, long pads evolving on filters that sweep over 64 bars, a deep sub under one root, glassy tones sparkling high up in long echoes. No beat.",
+    synth:
+      "held chords on a detuned sawtooth or supersaw, attack 4, release 8, high-passed a little and drowned in reverb, the filter opening and closing over 64 bars on a slow sine; now and then a glassy phrase of two or three high notes with a long dotted echo.",
+    arc: 0.2,
+    rush: 0,
+    seams: { gap: 0.7, mix: 0.3, drop: 0 },
+    minutes: [5, 8],
+    breathes: true,
+  },
+  preset: {
+    knobs: {
+      keys: { vibraphone: 0.5, square: 0.5, drift: 3 },
+      role: { arpeggios: 0.3, held: 2, resting: 1 },
+      octave: { middle: 1, higher: 1 },
+      progression: 0,
+      ownLoop: 1,
+      drone: 0.7,
+      droneShape: { root: 1, slowVIandVII: 1, slowIV: 1 },
+      bells: { scattered: 0.5, glass: 2, none: 1 },
+      motifSound: { bells: 1, pluck: 1 },
+      pulse: { heartbeat: 0.5, none: 2 },
+      backbeat: { none: 1 },
+      perc: { silent: 1 },
+      bassRoll: { long: 1, none: 2 },
+      lead: { none: 2, glass: 1 },
+      chords: { play: 1, rest: 0.5 },
+      pad: { full: 1 },
+    },
+    macros: { keys: 0.7, bloom: 0.8, glassy: 1, veiled: 0.3 },
+    loop: {
+      templates: [2, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2],
+      rhythm: { 2: [0, 0, 0, 0, 1, 2], 3: [0, 0, 0, 0, 1], 4: [0, 0, 0, 1] },
+      dominantOnV: 0,
+      secondary: 0,
+      borrowedIv: 0,
+      push: 0,
+    },
+    psy: {
+      roll: [1, 1, 1],
+      shaker: [1, 1, 1],
+      triplet: 0,
+      sweep: [64],
+      voice: [0, 1, 0],
+      three: [1, 1, 1],
+      hands: [1, 1, 1, 1],
+      change: { hand: 0.1, noHands: 0.05, kick: 0.1, shaker: 0.1, bass: 0.1, twist: 0.05 },
+    },
+    mode: { lowest: 1, highest: 3 },
+    mutation: 0.04,
+  },
+};

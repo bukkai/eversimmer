@@ -81,13 +81,21 @@ export function showMap(map: PotMap) {
   }
 }
 
-$("rest").addEventListener("click", () => send({ t: "dev:rest" }));
+$("rest").addEventListener("click", () => {
+  send({ t: "dev:rest" });
+  jump.value = "";
+  jumpNow.disabled = true;
+});
 $("next-track").addEventListener("click", () => send({ t: "dev:next" }));
 const jump = $<HTMLSelectElement>("jump");
-for (const r of REGIONS) jump.append(new Option(r.name, r.id));
+const jumpNow = $<HTMLButtonElement>("jump-now");
+for (const r of [...REGIONS].sort((a, b) => a.bpm - b.bpm)) jump.append(new Option(r.name, r.id));
 jump.addEventListener("change", () => {
-  if (jump.value) send({ t: "dev:genre", region: jump.value, now: $<HTMLSelectElement>("jump-when").value === "now" });
-  jump.value = "";
+  jumpNow.disabled = !jump.value;
+  if (jump.value) send({ t: "dev:genre", region: jump.value, now: false });
+});
+jumpNow.addEventListener("click", () => {
+  if (jump.value) send({ t: "dev:genre", region: jump.value, now: true });
 });
 $("travel").addEventListener("change", (e) =>
   send({ t: "dev:travel", ms: Number((e.target as HTMLSelectElement).value) * 3_600_000 }),

@@ -14,6 +14,7 @@ export const ambient: GenreFile = {
     rush: 0,
     seams: { gap: 1, mix: 0, drop: 0 },
     minutes: [3, 5],
+    breathes: true,
   },
   preset: {
     knobs: {

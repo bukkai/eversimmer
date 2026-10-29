@@ -66,7 +66,7 @@ test("a storm is livelier, busier and darker than a calm day, and a falling baro
   const still = reading(calm);
   const gale = reading(storm);
   assert.ok(PULL.energy(still) < 0 && PULL.energy(gale) > 0.9);
-  assert.ok(PULL.density(gale) > 0.8 && PULL.density(still) === 0);
+  assert.ok(PULL.density(gale) > 0.8 && PULL.density(still) < 0);
   assert.ok(PULL.warmth(gale) > 0 && PULL.warmth(still) < 0);
   assert.ok(PULL.valence(gale) < PULL.valence(still));
   assert.equal(PULL.tension(reading(calm, { fall: 6 })), 1);

@@ -1,5 +1,5 @@
 import { clamp } from "./numbers";
-import { REGIONS, weightsAt, type MapPosition } from "./map";
+import { breathingAt, REGIONS, weightsAt, type MapPosition } from "./map";
 import { BELLS, DEFAULT_PALETTE, KEY_ROLES, mutate, type Palette } from "./palette";
 
 export const SEAMS: Seam[] = ["gap", "mix", "drop"];
@@ -155,7 +155,7 @@ export function chooseSeam(at: MapPosition, liveliness: number, random = Math.ra
 }
 
 export const outroCycles = (ending: "gap" | "mix", at: MapPosition) =>
-  ending === "mix" ? MIX_CYCLES : weightsAt(at).ambient > 0.5 ? 8 : 4;
+  ending === "mix" ? MIX_CYCLES : breathingAt(at) > 0.5 ? 8 : 4;
 
 export function trackEnding(
   end: number,
@@ -174,7 +174,7 @@ export function trackEnding(
       { kind: "build", cycle: end - build, length: build, depth, palette },
     ];
   }
-  const rest = ending === "gap" ? { rest: (1 + Math.round(random()) + 2 * Math.round(weightsAt(at).ambient)) / 4 } : {};
+  const rest = ending === "gap" ? { rest: (1 + Math.round(random()) + 2 * Math.round(breathingAt(at))) / 4 } : {};
   return [{ kind: "outro", cycle: end - tail, length: tail, depth, palette, seam: ending, ...rest }];
 }
 

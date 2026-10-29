@@ -27,7 +27,7 @@ export const felt = (r: Reading) => Math.max(r.wind, r.gusts * 0.7);
 
 export const PULL: Record<Dimension, (r: Reading) => number> = {
   energy: (r) => ramp(felt(r), [0, -0.4], [15, 0], [40, 0.6], [70, 1]),
-  density: (r) => ramp(r.precipitation, [0, 0], [0.5, 0.3], [2, 0.6], [8, 1]),
+  density: (r) => ramp(r.precipitation, [0, -0.2], [0.5, 0.1], [2, 0.6], [8, 1]),
   tension: (r) => ramp(r.fall, [-2, -0.3], [0, 0], [3, 0.5], [6, 1]),
   warmth: (r) => ramp(r.cloud, [0, -0.6], [50, 0], [100, 0.5]),
   texture: (r) => ramp(r.cloud, [0, 0.3], [60, 0], [100, -0.4]) + 0.4 * (1 - r.day) * (1 - r.cloud / 100),

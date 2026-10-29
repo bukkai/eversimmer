@@ -1,0 +1,60 @@
+import type { GenreFile } from "./index";
+
+export const meditative: GenreFile = {
+  region: {
+    id: "meditative",
+    name: "meditative",
+    at: { energy: 0, texture: 0.5, colour: 0.55, strangeness: 0.1 },
+    bpm: 60,
+    character:
+      "stillness: one root held for minutes as a soft drone under a full pad, a single tone or a glass bell now and then, far apart, in a very large room. No pulse, no bass line, no melody to follow; it breathes rather than moves.",
+    synth:
+      "almost nothing: the drone and the pad carry it and the keys mostly rest; when they play, one chord held for many bars on a triangle, attack 4 or more and release 8, open fifths and octaves rather than full chords, the filter low and barely moving.",
+    arc: 0.1,
+    rush: 0,
+    seams: { gap: 1, mix: 0, drop: 0 },
+    minutes: [6, 10],
+    breathes: true,
+  },
+  preset: {
+    knobs: {
+      keys: { vibraphone: 0.5, drift: 3 },
+      role: { held: 2, resting: 1 },
+      octave: { lower: 1, middle: 1 },
+      progression: 0,
+      ownLoop: 1,
+      drone: 0.85,
+      droneShape: { root: 3, slowIV: 0.5 },
+      bells: { scattered: 0.3, glass: 0.6, none: 2 },
+      motifSound: { bells: 1, flute: 0.5 },
+      pulse: { none: 1 },
+      backbeat: { none: 1 },
+      perc: { silent: 1 },
+      bassRoll: { none: 1 },
+      lead: { none: 1 },
+      chords: { play: 1, rest: 2 },
+      pad: { full: 1 },
+    },
+    macros: { keys: 0.6, bloom: 1, homely: 0.5, focus: 1, veiled: 0.8 },
+    loop: {
+      templates: [2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+      rhythm: { 2: [0, 0, 0, 0, 0.5, 2], 3: [0, 0, 0, 0, 1], 4: [0, 0, 0, 1] },
+      dominantOnV: 0,
+      secondary: 0,
+      borrowedIv: 0,
+      push: 0,
+    },
+    psy: {
+      roll: [1, 1, 1],
+      shaker: [1, 1, 1],
+      triplet: 0,
+      sweep: [64],
+      voice: [0, 1, 0],
+      three: [1, 1, 1],
+      hands: [1, 1, 1, 1],
+      change: { hand: 0.05, noHands: 0.02, kick: 0.05, shaker: 0.05, bass: 0.05, twist: 0.02 },
+    },
+    mode: { lowest: 1 },
+    mutation: 0.02,
+  },
+};

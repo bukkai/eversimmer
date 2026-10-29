@@ -23,6 +23,7 @@ export type Region = {
   rush: number;
   seams: { gap: number; mix: number; drop: number };
   minutes: [min: number, max: number];
+  breathes?: true;
 };
 
 export const REGIONS: Region[] = GENRE_FILES.map((g) => g.region);
@@ -73,6 +74,8 @@ export function regionWeights(at: MapPosition): Record<string, number> {
   const total = k.reduce((a, b) => a + b, 0);
   return Object.fromEntries(REGIONS.map((r, i) => [r.id, k[i] / total]));
 }
+
+export const breathingAt = (at: MapPosition) => REGIONS.reduce((x, r) => (r.breathes ? x + weightsAt(at)[r.id] : x), 0);
 
 export function nearestRegions(at: MapPosition, count = 2) {
   const near = REGIONS.map((region) => ({ region, distance: distance(at, region.at) }))

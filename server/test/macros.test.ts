@@ -44,7 +44,8 @@ test("a macro fed by the genres is each preset's value by its genre's weight", (
   const broth = { ...RESTING_BROTH, energy: 0.6, texture: 0.4 };
   const weights = weightsAt(mapTarget(broth));
   const m = read(broth);
-  assert.equal(m.wear(), clamp(weights.lofi));
+  assert.ok(Math.abs(m.wear() - clamp(weights.lofi + 0.3 * weights.pianoAmbient)) < 1e-12);
   assert.ok(Math.abs(m.running() - (weights.lofi + weights.deepHouse)) < 1e-12);
-  assert.ok(Math.abs(m.keys() - (weights.lofi + weights.downtempo + weights.ambient + weights.deepHouse + weights.softIdm)) < 1e-12);
+  assert.ok(Math.abs(m.keys() - (weights.lofi + weights.downtempo + weights.ambient + weights.deepHouse + weights.softIdm +
+    0.6 * weights.meditative + 0.7 * weights.spaceAmbient + weights.pianoAmbient + 0.5 * weights.ambientTechno)) < 1e-12);
 });

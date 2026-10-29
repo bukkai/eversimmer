@@ -65,7 +65,7 @@ function cooks(table: Table, minutes: number) {
 }
 
 test("in a pot without talk, the live coder cooks with a listener and not without", () => {
-  const table = new Table({ id: "weather", name: "Weather", source: () => weather }, shared);
+  const table = new Table({ id: "meander", name: "Meander", source: () => weather }, shared);
   try {
     assert.equal(table.present, 0);
     assert.equal(cooks(table, 20), 0);

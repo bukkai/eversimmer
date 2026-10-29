@@ -1,0 +1,60 @@
+import type { GenreFile } from "./index";
+
+export const pianoAmbient: GenreFile = {
+  region: {
+    id: "pianoAmbient",
+    name: "piano ambient",
+    at: { energy: 0.12, texture: 0.12, colour: 0.42, strangeness: 0.1 },
+    bpm: 72,
+    character:
+      "a soft, felted piano in a quiet room on a grey day: a few notes and slow broken chords with the pedal down, a warm hiss and a soft pad behind it, no beat. Close and intimate rather than vast.",
+    synth:
+      "a soft piano playing a slow loop of two to four plain chords, broken into a few notes a bar rather than struck, in the middle register, a long release and a little room; now and then the chord just held.",
+    arc: 0.3,
+    rush: 0,
+    seams: { gap: 1, mix: 0, drop: 0 },
+    minutes: [3, 5],
+    breathes: true,
+  },
+  preset: {
+    knobs: {
+      keys: { epiano: 0.5, piano: 3, vibraphone: 0.3 },
+      role: { arpeggios: 1.5, held: 1, resting: 0.3 },
+      octave: { lower: 0.5, middle: 1 },
+      progression: 0.2,
+      ownLoop: 2,
+      drone: 0.15,
+      droneShape: { root: 1, slowIV: 1 },
+      bells: { scattered: 0.3, musicBox: 0.4, none: 3 },
+      motifSound: { bells: 0.5, flute: 0.5 },
+      pulse: { heartbeat: 0.3, none: 2 },
+      backbeat: { none: 1 },
+      perc: { silent: 1 },
+      bassRoll: { none: 1 },
+      lead: { none: 1 },
+      chords: { play: 1 },
+      pad: { full: 0.4, bed: 1 },
+    },
+    macros: { keys: 1, homely: 1, focus: 1, wear: 0.3, bloom: 0.3 },
+    loop: {
+      templates: [2, 1, 0.5, 2, 0, 1, 0, 0, 1, 1, 0.5, 1, 0, 0, 0, 0, 0, 0, 1.5, 1],
+      rhythm: { 2: [0, 1, 0, 2, 0.5, 0], 3: [0, 0, 1, 1, 0], 4: [0, 1, 1, 0] },
+      dominantOnV: 0,
+      secondary: 0,
+      borrowedIv: 0.15,
+      push: 0,
+    },
+    psy: {
+      roll: [1, 1, 1],
+      shaker: [1, 1, 1],
+      triplet: 0,
+      sweep: [32, 64],
+      voice: [0, 1, 0],
+      three: [1, 1, 1],
+      hands: [1, 1, 1, 1],
+      change: { hand: 0.1, noHands: 0.05, kick: 0.1, shaker: 0.1, bass: 0.1, twist: 0.05 },
+    },
+    mode: { lowest: 1 },
+    mutation: 0.05,
+  },
+};

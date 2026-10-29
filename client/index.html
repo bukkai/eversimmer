@@ -19,7 +19,7 @@
     <section id="listen" hidden>
       <canvas id="sky" aria-hidden="true"></canvas>
       <div class="over">
-        <p class="station">Eversimmer FM</p>
+        <p id="listen-station" class="station">Eversimmer FM</p>
         <h1 id="listen-place">The weather</h1>
         <p id="listen-time" class="when"></p>
         <p id="listen-conditions" class="conditions"></p>
@@ -58,10 +58,7 @@
               <select id="jump" aria-label="Jump to a genre">
                 <option value="">jump to…</option>
               </select>
-              <select id="jump-when" aria-label="When the jump lands">
-                <option value="next">with the next track</option>
-                <option value="now">now</option>
-              </select>
+              <button id="jump-now" class="ghost" disabled>Switch now</button>
             </header>
             <p id="map-where" class="mono"></p>
             <div id="map-sliders"></div>

@@ -13,6 +13,7 @@ export function namePot(n: string) {
   document.title = `Eversimmer FM · ${n}`;
   $("pot-name").textContent = n;
   $("chat-name").textContent = n;
+  $("listen-station").textContent = `Eversimmer FM · ${n}`;
 }
 
 namePot(name);

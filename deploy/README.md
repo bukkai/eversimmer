@@ -45,9 +45,18 @@ Elke tien minuten kijkt de Pi of er iets nieuws op `main` staat. Is dat zo, dan 
 Voor de launch speelt alleen de weer-pot, op de voorpagina, zonder live coder. `env.example` zet dat zo:
 
 ```
-POTS=weather
+POTS=meander
 WEATHER_PLACE=bergen
 LIVE_CODER=off
+```
+
+**Heette de pot op je Pi nog `weather`?** Sinds hij Meander heet, start de server met `POTS=weather` niet meer ("there is no pot called weather" in `journalctl -u eversimmer`). Zodra die versie binnen is, zo, en de muziek gaat verder waar hij was:
+
+```bash
+sudo systemctl stop eversimmer
+sudo sed -i 's/^POTS=weather$/POTS=meander/' /opt/eversimmer/shared/env
+sudo mv /opt/eversimmer/shared/kept/weather.json /opt/eversimmer/shared/kept/meander.json
+sudo systemctl start eversimmer
 ```
 
 Een nieuwe installatie krijgt die regels vanzelf. Heb je al een `shared/env`, zet ze er dan zelf bij en herstart de service. Zonder Anthropic-key werkt de weer-pot ook: hij gebruikt geen LLM, en Open-Meteo is gratis en heeft geen key nodig.
@@ -63,7 +72,7 @@ De service bewaart elke pot elke 30 seconden in `shared/kept/`, en ook als hij s
 
 ```bash
 sudo systemctl stop eversimmer
-sudo rm /opt/eversimmer/shared/kept/weather.json
+sudo rm /opt/eversimmer/shared/kept/meander.json
 sudo systemctl start eversimmer
 ```
 
