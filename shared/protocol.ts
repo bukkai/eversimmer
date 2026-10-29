@@ -30,6 +30,8 @@ export type Sky = {
   timeZone: string;
   at: number;
   pace: number;
+  latitude: number;
+  longitude: number;
   weather?: {
     conditions: string;
     code: number;
@@ -37,6 +39,15 @@ export type Sky = {
     precipitation: number;
     wind: number;
     day: number;
+    temperature: number;
+    usual: number;
+    gusts: number;
+    pressure: number;
+    fall: number;
+    visibility: number;
+    light: number;
+    moon: number;
+    moonUp: boolean;
   };
   credit: { name: string; url: string };
 };
@@ -65,7 +76,8 @@ export type ServerMessage =
   | { t: "air"; air: Air }
   | { t: "course"; course: Course; entry: RecipeEntry }
   | { t: "key"; key: string }
-  | { t: "sky"; sky: Sky };
+  | { t: "sky"; sky: Sky }
+  | { t: "listening"; places: number };
 
 export type ClientMessage =
   | { t: "ping"; id: number }

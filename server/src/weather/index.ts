@@ -141,12 +141,31 @@ export class Weather implements Source {
 
   sky(at: number): Sky {
     const r = this.reading(at);
+    const moon = r && moonAt(this.place, r.at);
     return {
       place: this.place.name,
       timeZone: this.place.timeZone,
       at: this.clock(at),
       pace: (this.clock(at + 60_000) - this.clock(at)) / 60_000,
-      weather: r && { conditions: conditions(r), code: r.code, cloud: r.cloud, precipitation: r.precipitation, wind: felt(r), day: r.day },
+      latitude: this.place.latitude,
+      longitude: this.place.longitude,
+      weather: r && {
+        conditions: conditions(r),
+        code: r.code,
+        cloud: r.cloud,
+        precipitation: r.precipitation,
+        wind: felt(r),
+        day: r.day,
+        temperature: r.temperature,
+        usual: r.usual,
+        gusts: r.gusts,
+        pressure: r.pressure,
+        fall: r.fall,
+        visibility: r.visibility,
+        light: r.light,
+        moon: moon!.lit,
+        moonUp: moon!.altitude > 0,
+      },
       credit: { name: "Open-Meteo.com", url: "https://open-meteo.com/" },
     };
   }

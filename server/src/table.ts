@@ -101,9 +101,11 @@ export class Table {
     const sky = this.source.sky?.(now());
     if (sky) send(ws, { t: "sky", sky });
     if (!this.source.talk) this.updatePresence();
+    this.broadcast({ t: "listening", places: this.places });
     ws.on("close", () => {
       this.sockets.delete(ws);
       if (this.people.delete(ws) || !this.source.talk) this.updatePresence();
+      this.broadcast({ t: "listening", places: this.places });
     });
     return true;
   }

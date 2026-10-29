@@ -15,13 +15,14 @@ import {
 } from "@strudel/web";
 import { registerSoundfonts } from "@strudel/soundfonts";
 import { cpsAtCycle, cycleAt, timeAtCycle, type TempoSegment } from "../../shared/clock";
-import { formAt, paletteAt, type Section } from "../../shared/form";
-import { courseGlobals } from "../../shared/globals";
-import { styleWeights, tidesAt, trackKey, type Tides } from "../../shared/palette";
-import { mapTarget, weightsAt, type MapPosition } from "../../shared/map";
+import { formAt, formSignals, paletteAt, type Section } from "../../shared/form";
+import { courseGlobals, type CourseSources } from "../../shared/globals";
+import { paletteSignals, styleSignals, styleWeights, tidesAt, trackKey, type Tides } from "../../shared/palette";
+import { genreSignals, mapTarget, weightsAt, type MapPosition } from "../../shared/map";
 import { loadRegions } from "../../shared/regions";
 import { loadScore } from "../../shared/score";
 import { loadDrums } from "../../shared/drums";
+import { macroSignals } from "../../shared/macros";
 import { DRUM_MACHINES_URL, levelOf } from "../../shared/sounds";
 import { STONE } from "../../shared/stone";
 import { foldValue, RESTING_BROTH, scaleFor, STILL_AIR, type Air, type Broth, type Course, type PotState } from "../../shared/types";
@@ -53,18 +54,19 @@ function setKeyFrom(cycle: number, key: string) {
   while (keys.length > 1 && keys[1].from <= now) keys.shift();
 }
 
+const sources: CourseSources = {
+  broth: () => live,
+  scale: (cycle) => scaleFor(trackKeyAt(cycle), live.valence, weightsAt(position), paletteAt(form, cycle).parent),
+  position: () => position,
+  moment: (cycle) => formAt(form, cycle),
+  palette: (cycle) => paletteAt(form, cycle),
+  tides: () => tidesNow(),
+  style: () => styleWeights(tidesNow()),
+  air: () => air,
+};
 Object.assign(
   globalThis,
-  courseGlobals(signal, {
-    broth: () => live,
-    scale: (cycle) => scaleFor(trackKeyAt(cycle), live.valence, weightsAt(position), paletteAt(form, cycle).parent),
-    position: () => position,
-    moment: (cycle) => formAt(form, cycle),
-    palette: (cycle) => paletteAt(form, cycle),
-    tides: () => tidesNow(),
-    style: () => styleWeights(tidesNow()),
-    air: () => air,
-  }),
+  courseGlobals(signal, sources),
 );
 
 const ready = initStrudel({
@@ -213,9 +215,10 @@ export async function startEngine(e: EngineEvents = {}, ready: Promise<unknown> 
   events = e;
   const session = (navigator as { audioSession?: { type: string } }).audioSession;
   if (session) session.type = "playback";
+  const ctx = getAudioContext();
+  const resumed = ctx.resume().catch(() => {});
   await initAudio();
   await library;
-  const ctx = getAudioContext();
   masterBus(ctx);
   setInterval(() => {
     masterBus(ctx);
@@ -254,6 +257,8 @@ export async function startEngine(e: EngineEvents = {}, ready: Promise<unknown> 
   for (const c of waiting) scheduler.setCourse(c.from, c.id, c.pattern);
   waiting = [];
   scheduler.start();
+  await resumed;
+  return ctx.state === "running";
 }
 
 async function evaluateStone(repl: Awaited<typeof library>) {
@@ -364,3 +369,21 @@ export const currentCourse = () => scheduler?.courseAt(currentCycle());
 export const currentLayers = (): readonly Layer[] => layers.get(scheduler?.courseAt(currentCycle()) ?? "") ?? [];
 export const currentNote = () => notes.get(scheduler?.courseAt(currentCycle()) ?? "") ?? "";
 export const secondsUntil = (cycle: number) => (timeAtCycle(tempo, cycle) - serverNow()) / 1000;
+
+const plain = (fn: (t: number) => number) => fn;
+const readable: Record<string, Record<string, (t: number) => number>> = {
+  genre: genreSignals(plain, sources.position),
+  form: formSignals(plain, sources.moment, sources.position),
+  palette: paletteSignals(plain, sources.palette, sources.tides),
+  style: styleSignals(plain, sources.style),
+  macro: macroSignals(plain, sources),
+};
+
+export function readSignal(group: string, name: string, cycle = currentCycle()): number | string | undefined {
+  if (group === "broth") return name === "scale" ? sources.scale(cycle) : live[name as keyof Broth];
+  const read = readable[group]?.[name];
+  return typeof read === "function" ? read(cycle) : undefined;
+}
+
+export const getAir = (): Readonly<Air> => air;
+export const getMapPosition = (): Readonly<MapPosition> => position;

@@ -52,7 +52,9 @@ export function setSky(next: Sky) {
   if (still) draw(performance.now());
 }
 
-const weatherNow = () => (sky ? sky.at + (Date.now() - heardAt) * sky.pace : Date.now());
+export const currentSky = () => sky;
+
+export const weatherNow = () => (sky ? sky.at + (Date.now() - heardAt) * sky.pace : Date.now());
 
 function localTime(at: number) {
   return new Intl.DateTimeFormat(undefined, { timeZone: sky?.timeZone, hour: "2-digit", minute: "2-digit" }).format(at);
@@ -93,7 +95,7 @@ function draw(t: number) {
   const ctx = canvas.getContext("2d")!;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  const weather: Weather = sky?.weather ?? { conditions: "", code: 2, cloud: 30, precipitation: 0, wind: 8, day: 0.5 };
+  const weather: Pick<Weather, "code" | "cloud" | "precipitation" | "wind" | "day"> = sky?.weather ?? { code: 2, cloud: 30, precipitation: 0, wind: 8, day: 0.5 };
   const day = weather.day;
   const cloud = weather.cloud / 100;
   const dusk = Math.max(0, 1 - Math.abs(day - 0.5) * 2.4) * (1 - cloud * 0.8);

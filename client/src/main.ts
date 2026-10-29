@@ -32,6 +32,7 @@ import {
 import { showLayers } from "./layerpanel";
 import { clockStats, connect, send, serverNow, startClockAt } from "./net";
 import { createPotView } from "./potview";
+import { addCourse, setListening, setOnAir, showInstruments } from "./instruments";
 import { setSky, showSky } from "./sky";
 import { addEntry, followRecipe, setRecipe } from "./recipecard";
 import { offerCode, setStatus, showBroth, showDesk, showDeskAt, showKey, showMap } from "./tuning";
@@ -81,6 +82,7 @@ async function openDoor() {
   $("door").hidden = true;
   $("listen").hidden = false;
   showSky(door.sky);
+  showInstruments();
 
   const button = $<HTMLButtonElement>("listen-button");
   const note = $("listen-note");
@@ -110,7 +112,7 @@ async function openDoor() {
       started = true;
       button.disabled = true;
       button.textContent = "Tuning in…";
-      await startEngine({
+      sounding = await startEngine({
         onError: (e) => console.error(e),
         onBroken: (course, error) => send({ t: "broken", course, error }),
         onAudio: (running) => {
@@ -121,7 +123,6 @@ async function openDoor() {
       button.disabled = false;
       setVolume(Number(volume.value));
       playing = true;
-      sounding = true;
     } else if (playing && sounding) {
       playing = false;
       await pauseEngine();
@@ -139,6 +140,9 @@ function onMessage(msg: ServerMessage) {
       namePot(msg.state.name ?? "Potluck");
       showTalk(msg.state.talk !== false);
       applyState(msg.state);
+      setOnAir(msg.state.epoch);
+      addCourse(msg.state.course);
+      if (msg.state.upcoming) addCourse(msg.state.upcoming);
       showBroth(msg.state.broth);
       showKey(msg.state.key);
       offerCode(msg.state.course.code);
@@ -179,6 +183,7 @@ function onMessage(msg: ServerMessage) {
     case "course":
       upcoming = msg.course;
       loadCourse(msg.course);
+      addCourse(msg.course);
       addEntry(msg.entry);
       setStatus("");
       break;
@@ -201,6 +206,9 @@ function onMessage(msg: ServerMessage) {
       break;
     case "sky":
       setSky(msg.sky);
+      break;
+    case "listening":
+      setListening(msg.places);
       break;
   }
 }

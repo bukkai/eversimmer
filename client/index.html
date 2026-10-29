@@ -18,6 +18,7 @@
 
     <section id="listen" hidden>
       <canvas id="sky" aria-hidden="true"></canvas>
+      <pre id="listen-code" class="code" aria-hidden="true"></pre>
       <div class="over">
         <a id="listen-station" class="station" href="/">Eversimmer FM</a>
         <h1 id="listen-place">The weather</h1>
@@ -25,8 +26,10 @@
         <p id="listen-conditions" class="conditions"></p>
         <button id="listen-button">Tap to listen</button>
         <p id="listen-note" class="note" aria-live="polite"></p>
+        <p id="listen-stats" class="stats"></p>
         <p class="about">Music that never stops, played by the weather. Wind, rain, cloud and light season it as they change.</p>
       </div>
+      <aside id="listen-inputs" class="inputs" aria-label="What the music is played by"></aside>
     </section>
 
     <main id="room" hidden>
@@ -151,10 +154,9 @@
     </main>
 
     <footer class="mono">
-      <a href="/source">Source</a>
-      · AGPL-3.0 · made with <a href="https://strudel.cc" target="_blank" rel="noopener">Strudel</a>
-      · <a href="/credits.html" target="_blank" rel="noopener">Credits</a>
-      · <a href="/privacy.html" target="_blank" rel="noopener">Privacy</a><span id="credit" hidden>
+      <a href="/source">source</a>
+      · <a href="/credits.html" target="_blank" rel="noopener">credits</a>
+      · <a href="/privacy.html" target="_blank" rel="noopener">privacy</a><span id="credit" hidden>
       · weather data by <a id="credit-link" href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0)</span>
     </footer>
 
