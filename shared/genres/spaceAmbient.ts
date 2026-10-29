@@ -18,14 +18,14 @@ export const spaceAmbient: GenreFile = {
   },
   preset: {
     knobs: {
-      keys: { vibraphone: 0.5, square: 0.5, drift: 3 },
+      keys: { vibraphone: 0.5, guitar: 0.5, drift: 3 },
       role: { arpeggios: 0.3, held: 2, resting: 1 },
       octave: { middle: 1, higher: 1 },
       progression: 0,
       ownLoop: 1,
       drone: 0.7,
       droneShape: { root: 1, slowVIandVII: 1, slowIV: 1 },
-      bells: { scattered: 0.5, glass: 2, none: 1 },
+      bells: { harp: 0.5, rhodes: 2, none: 1 },
       motifSound: { bells: 1, pluck: 1 },
       pulse: { heartbeat: 0.5, none: 2 },
       backbeat: { none: 1 },
@@ -35,7 +35,7 @@ export const spaceAmbient: GenreFile = {
       chords: { play: 1, rest: 0.5 },
       pad: { full: 1 },
     },
-    macros: { keys: 0.7, bloom: 0.8, glassy: 1, veiled: 0.3 },
+    macros: { keys: 0.7, bloom: 0.8, glassy: 1, veiled: 0.3, hushed: 1 },
     loop: {
       templates: [2, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2],
       rhythm: { 2: [0, 0, 0, 0, 1, 2], 3: [0, 0, 0, 0, 1], 4: [0, 0, 0, 1] },

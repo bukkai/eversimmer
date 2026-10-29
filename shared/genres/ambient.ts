@@ -18,14 +18,14 @@ export const ambient: GenreFile = {
   },
   preset: {
     knobs: {
-      keys: { epiano: 0.6, piano: 1, organ: 0.2, vibraphone: 1, square: 0.3, drift: 3 },
+      keys: { epiano: 0.6, piano: 1, organ: 0.2, vibraphone: 1, guitar: 0.3, drift: 3 },
       role: { arpeggios: 0.3, held: 2, resting: 0.6 },
       octave: { lower: 1, middle: 1, higher: 0.4 },
       progression: 0,
       ownLoop: 2,
       drone: 0.5,
       droneShape: { root: 1, slowVIandVII: 1, slowIV: 1 },
-      bells: { scattered: 1, glass: 1, musicBox: 0.4, none: 1 },
+      bells: { harp: 1, rhodes: 1, guitar: 0.4, none: 1 },
       motifSound: { bells: 1, flute: 1, pluck: 0.4 },
       pulse: { heartbeat: 1, none: 2 },
       backbeat: { none: 1 },
@@ -33,7 +33,7 @@ export const ambient: GenreFile = {
       bassRoll: { none: 1 },
       chords: { play: 1, rest: 0.3 },
     },
-    macros: { keys: 1, bloom: 1, homely: 1 },
+    macros: { keys: 1, bloom: 1, homely: 1, hushed: 1 },
     loop: {
       templates: [2, 1, 0.5, 2, 0, 1, 0, 0, 1, 0.3, 0, 0, 0, 0, 0, 0, 0, 0, 1.5, 1],
       rhythm: { 2: [0, 0, 0, 0.3, 2, 1], 3: [0, 0, 0, 1.5, 0.7], 4: [0, 0, 1, 1] },

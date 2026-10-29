@@ -24,7 +24,7 @@ export const ambientTechno: GenreFile = {
       swing: { nearlyStraight: 1 },
       drone: 0.7,
       droneShape: { root: 2, slowVIandVII: 1 },
-      bells: { glass: 0.3, none: 4 },
+      bells: { rhodes: 0.3, none: 4 },
       drums: { dusty909: 1, tr909: 0.5 },
       pulse: { heartbeat: 1, fourFloor: 2 },
       backbeat: { none: 1 },
@@ -34,7 +34,7 @@ export const ambientTechno: GenreFile = {
       chords: { play: 1, rest: 0.3 },
       pad: { full: 1 },
     },
-    macros: { keys: 0.5, muffle: 1, echoing: 0.6, veiled: 0.6, bloom: 0.5 },
+    macros: { keys: 0.5, muffle: 1, echoing: 0.6, veiled: 0.6, bloom: 0.5, hushed: 1 },
     loop: {
       templates: [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.5, 1.5],
       rhythm: { 2: [0, 0, 0, 0, 1, 2], 3: [0, 0, 0, 0, 1], 4: [0, 0, 0, 1] },

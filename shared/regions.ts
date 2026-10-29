@@ -2,8 +2,8 @@ export const REGION_PARTS: Record<string, { region: string; code: string }> = {
   drift: {
     region: "ambient",
     code: `
-// ambient: the same chords held for the whole bar, swelling in and fading out, with a ninth on top
-// and a filter that drifts by itself. It is a chord instrument the track chooses (palette.keys 6),
+// ambient: the same chords held for the whole bar on strings, swelling in and fading out, with a
+// ninth on top and a filter that drifts by itself. It is a chord instrument the track chooses (palette.keys 6),
 // and rests with the other keys (palette.chords); every breakdown borrows it, wherever the pot is,
 // and near ambient it lies underneath as a soft bed, never above the level it has at rest
 const drifts = palette.keys.fmap(k => k === 6 ? 1 : 0).mul(palette.chords.fmap(c => 1 - c))
@@ -12,7 +12,7 @@ const bed = part(drifting, 0.07).fmap(g => Math.min(g, 0.02))
 const drift = n(coloured(stack(chord, "8".add(root)))).vib(0.3).vibmod(style.tape.mul(0.15))
   .mask(here(drifting.add(form.strip).add(drifts)))
   .scale(broth.scale)
-  .s("triangle").attack(2.5).decay(2).sustain(0.7).release(5)
+  .s("gm_string_ensemble_1").attack(2.5).decay(2).sustain(0.7).release(5)
   .lpf(broth.warmth.range(2400, 700).add(perlin.slow(4).mul(700)))
   .pan(perlin.slow(8).range(0.35, 0.65))
   .room(0.85).roomsize(8)

@@ -5,7 +5,7 @@
 # after that. Running it again later is harmless.
 set -euo pipefail
 
-REPO=git@github.com:stephanmullerNL/eversimmer.git
+REPO=git@github.com:bukkai/eversimmer.git
 ROOT=/opt/eversimmer
 HOME_DIR=/var/lib/eversimmer
 as() { runuser -u eversimmer -- "$@"; }

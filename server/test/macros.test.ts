@@ -49,3 +49,16 @@ test("a macro fed by the genres is each preset's value by its genre's weight", (
   assert.ok(Math.abs(m.keys() - (weights.lofi + weights.downtempo + weights.ambient + weights.deepHouse + weights.softIdm +
     0.6 * weights.meditative + 0.7 * weights.spaceAmbient + weights.pianoAmbient + 0.5 * weights.ambientTechno)) < 1e-12);
 });
+
+test("fog in the air puts the music in a larger room and muffles it, and still air leaves it be", () => {
+  const position = () => mapTarget(RESTING_BROTH);
+  const at = (fog?: number) =>
+    macroSignals((fn) => fn, { broth: () => RESTING_BROTH, style: () => ({ tape: 0, melody: 0, gen: 0 }), position, air: fog === undefined ? undefined : () => ({ fog }) });
+  const still = at();
+  const thick = at(1);
+  assert.equal((still.fog as () => number)(), 0);
+  assert.equal((at(0).muffle as () => number)(), (still.muffle as () => number)());
+  assert.equal((thick.fog as () => number)(), 1);
+  assert.ok((thick.muffle as () => number)() >= (still.muffle as () => number)() + 0.4);
+  assert.ok((thick.veiled as () => number)() >= (still.veiled as () => number)() + 0.4);
+});

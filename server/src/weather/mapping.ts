@@ -1,3 +1,4 @@
+import type { Lean } from "../../../shared/palette";
 import type { FoundIngredient } from "../pantry";
 import type { MoodTargets } from "../source";
 import type { Hour } from "./open-meteo";
@@ -5,6 +6,8 @@ import type { Hour } from "./open-meteo";
 export type Reading = Hour & {
   fall: number;
   hour: number;
+  usual: number;
+  moon: number;
 };
 
 export type Dimension = keyof MoodTargets;
@@ -22,28 +25,40 @@ export function ramp(x: number, ...points: [number, number][]) {
 }
 
 const isFog = (r: Reading) => (r.code === 45 || r.code === 48 ? 1 : 0);
+export const haze = (r: Reading) => Math.max(ramp(r.visibility, [300, 1], [1000, 0.7], [4000, 0.25], [10_000, 0]), 0.7 * isFog(r));
 const smallHours = (r: Reading) => Math.max(ramp(r.hour, [0, 0.6], [3, 1], [6, 0]), ramp(r.hour, [22, 0], [24, 0.6]));
 export const felt = (r: Reading) => Math.max(r.wind, r.gusts * 0.7);
+const clearNight = (r: Reading) => (1 - r.day) * (1 - r.cloud / 100);
+export const moonlit = (r: Reading) => r.moon * clearNight(r);
 
 export const PULL: Record<Dimension, (r: Reading) => number> = {
   energy: (r) => ramp(felt(r), [0, -0.4], [15, 0], [40, 0.6], [70, 1]),
   density: (r) => ramp(r.precipitation, [0, -0.2], [0.5, 0.1], [2, 0.6], [8, 1]),
   tension: (r) => ramp(r.fall, [-2, -0.3], [0, 0], [3, 0.5], [6, 1]),
-  warmth: (r) => ramp(r.cloud, [0, -0.6], [50, 0], [100, 0.5]),
-  texture: (r) => ramp(r.cloud, [0, 0.3], [60, 0], [100, -0.4]) + 0.4 * (1 - r.day) * (1 - r.cloud / 100),
-  valence: (r) => ramp(r.light, [0, -0.2], [150, 0], [600, 0.5]),
+  warmth: (r) =>
+    0.6 * ramp(r.temperature, [-5, -1], [3, -0.4], [10, 0], [18, 0.5], [25, 1]) + 0.4 * ramp(r.temperature - r.usual, [-6, -1], [0, 0], [6, 1]),
+  texture: (r) => ramp(r.cloud, [0, 0.3], [60, 0], [100, -0.4]) + 0.4 * clearNight(r) * (1 - 0.7 * r.moon),
+  valence: (r) => ramp(r.light, [0, -0.2], [150, 0], [600, 0.5]) + 0.5 * moonlit(r),
   strangeness: (r) => Math.min(1, 0.7 * isFog(r) + 0.3 * smallHours(r)),
 };
 
 export const REACH: Record<Dimension, number> = {
-  energy: 0.5,
-  density: 0.6,
+  energy: 0.65,
+  density: 0.7,
   tension: 0.5,
-  warmth: 0.35,
-  texture: 0.4,
-  valence: 0.3,
-  strangeness: 0.5,
+  warmth: 0.45,
+  texture: 0.5,
+  valence: 0.4,
+  strangeness: 0.6,
 };
+
+export function lean(r: Reading): Lean {
+  return {
+    bright: moonlit(r),
+    tempo: ramp(felt(r), [0, -0.6], [15, 0], [50, 1]),
+    swing: ramp(r.temperature, [0, -0.5], [12, 0], [24, 0.8]),
+  };
+}
 
 const DRIZZLE = "a faint, soft crackle up high, like drizzle on a window";
 const RAIN = "a filtered patter of rain far in the background";

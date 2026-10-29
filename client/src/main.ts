@@ -23,8 +23,11 @@ import {
   setMapPosition,
   setTempo,
   setTimeShift,
+  setTides,
+  setAir,
   setVolume,
   startEngine,
+  warmUp,
 } from "./engine";
 import { showLayers } from "./layerpanel";
 import { clockStats, connect, send, serverNow, startClockAt } from "./net";
@@ -58,29 +61,26 @@ $("join-form").addEventListener("submit", async (e) => {
   tick();
 });
 
-const DOOR_REFRESH_MS = 5 * 60_000;
 if (!import.meta.env.VITE_MOMENT) void openDoor();
 
-async function openDoor() {
-  let door: Door;
+async function knock(): Promise<Door | undefined> {
+  const data = document.getElementById("door-data");
+  if (data?.textContent) return JSON.parse(data.textContent);
   try {
     const res = await fetch(doorPath);
-    if (!res.ok) return;
-    door = await res.json();
+    return res.ok ? await res.json() : undefined;
   } catch {
-    return;
+    return undefined;
   }
-  if (!door.sky || door.devControls) return;
+}
+
+async function openDoor() {
+  const door = await knock();
+  if (!door?.sky || door.devControls) return;
   namePot(door.name);
   $("door").hidden = true;
   $("listen").hidden = false;
   showSky(door.sky);
-  const refresh = setInterval(async () => {
-    try {
-      const fresh = (await (await fetch(doorPath)).json()) as Door;
-      if (fresh.sky) setSky(fresh.sky);
-    } catch {}
-  }, DOOR_REFRESH_MS);
 
   const button = $<HTMLButtonElement>("listen-button");
   const note = $("listen-note");
@@ -101,12 +101,15 @@ async function openDoor() {
             : "";
   };
   let sounding = false;
+  const connected = connect(onMessage, (s) => {
+    lost = s !== "connected";
+    if (started) show(sounding);
+  }).then(warmUp);
   button.addEventListener("click", async () => {
     if (!started) {
       started = true;
       button.disabled = true;
       button.textContent = "Tuning in…";
-      clearInterval(refresh);
       await startEngine({
         onError: (e) => console.error(e),
         onBroken: (course, error) => send({ t: "broken", course, error }),
@@ -114,11 +117,7 @@ async function openDoor() {
           sounding = running;
           show(sounding);
         },
-      });
-      await connect(onMessage, (s) => {
-        lost = s !== "connected";
-        show(sounding);
-      });
+      }, connected);
       button.disabled = false;
       setVolume(Number(volume.value));
       playing = true;
@@ -153,6 +152,12 @@ function onMessage(msg: ServerMessage) {
       break;
     case "timeShift":
       setTimeShift(msg.ms);
+      break;
+    case "tides":
+      setTides(msg.tides);
+      break;
+    case "air":
+      setAir(msg.air);
       break;
     case "map":
       setMapPosition(msg.map.position);

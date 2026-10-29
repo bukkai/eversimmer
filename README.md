@@ -17,4 +17,4 @@ Then open the address Vite prints. With `ANTHROPIC_API_KEY` in a `.env` at the r
 
 ## Licence
 
-GNU AGPL 3.0 or later. Whoever listens can have the source of what plays: every pot hands it out at `/source`.
+GNU AGPL 3.0 or later. Whoever listens can have the source of what plays: every pot points at the exact version it plays from `/source`.

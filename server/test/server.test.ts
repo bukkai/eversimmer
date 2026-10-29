@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createServer } from "node:http";
@@ -12,7 +12,7 @@ import { RESTING_BROTH } from "../../shared/types";
 import { POTS } from "../src/pots";
 import { potServer } from "../src/server";
 import type { Source } from "../src/source";
-import { REPOSITORY, serveSource } from "../src/static";
+import { dressPage, REPOSITORY, serveSource } from "../src/static";
 import { MAX_PER_PLACE } from "../src/table";
 import { Validator } from "../src/validate";
 
@@ -169,6 +169,22 @@ test("the page is served at a pot's address, and health lists every pot", async 
   assert.notEqual((await fetch(`http://${base}/nowhere`)).status, 200);
 });
 
+test("a pot's page is dressed for its door, so a weather pot shows its sky from the first paint", () => {
+  const html = readFileSync(new URL("../../client/index.html", import.meta.url), "utf8");
+  const sky = dressPage(html, { name: "Quiet <b>", talk: false, devControls: false, sky: SKY });
+  assert.match(sky, /<section id="door" hidden>/);
+  assert.match(sky, /<section id="listen">/);
+  assert.match(sky, /<h1 id="listen-place">Nowhere</);
+  assert.match(sky, /<title>Eversimmer FM · Quiet &lt;b&gt;</);
+  const door = sky.match(/<script id="door-data" type="application\/json">(.*?)<\/script>/)?.[1];
+  assert.equal(JSON.parse(door ?? "").name, "Quiet <b>");
+  assert.doesNotMatch(door ?? "", /<b>/);
+  const chat = dressPage(html, { name: "Potluck", talk: true, devControls: false });
+  assert.match(chat, /<section id="door">/);
+  assert.match(chat, /<section id="listen" hidden>/);
+  assert.match(dressPage(html, { name: "Quiet", talk: false, devControls: true, sky: SKY }), /<section id="door">/);
+});
+
 test("the front page lists the pots that play and those still to come", async () => {
   const pots = (await (await fetch(`http://${base}${POTS_PATH}`)).json()) as Listings;
   assert.deepEqual(pots.live.map((p) => p.id), ["potluck", "quiet"]);
@@ -176,24 +192,18 @@ test("the front page lists the pots that play and those still to come", async ()
   assert.deepEqual(pots.soon, [{ name: "Later", line: "Still steeping." }]);
 });
 
-test("the source is on offer: the release's own archive, or the repository", async () => {
+test("the source is on offer: the repository, at the commit the release plays", async () => {
   const served = await fetch(`http://${base}/source`, { redirect: "manual" });
-  assert.ok([200, 302].includes(served.status));
-  await served.body?.cancel();
+  assert.equal(served.status, 302);
+  assert.ok(served.headers.get("location")?.startsWith(REPOSITORY));
   const dir = mkdtempSync(join(tmpdir(), "release-"));
   const release = createServer((_, res) => serveSource(res, dir));
   await new Promise<void>((resolve) => release.listen(0, "127.0.0.1", resolve));
   const source = () => fetch(`http://127.0.0.1:${(release.address() as AddressInfo).port}/source`, { redirect: "manual" });
   try {
-    const away = await source();
-    assert.equal(away.status, 302);
-    assert.equal(away.headers.get("location"), REPOSITORY);
-    writeFileSync(join(dir, "source.tar.gz"), "archive");
+    assert.equal((await source()).headers.get("location"), REPOSITORY);
     writeFileSync(join(dir, "COMMIT"), "0123456789abcdef\n");
-    const res = await source();
-    assert.equal(await res.text(), "archive");
-    assert.equal(res.headers.get("content-length"), "7");
-    assert.match(res.headers.get("content-disposition") ?? "", /eversimmer-0123456789ab\.tar\.gz/);
+    assert.equal((await source()).headers.get("location"), `${REPOSITORY}/tree/0123456789abcdef`);
   } finally {
     release.close();
     rmSync(dir, { recursive: true, force: true });

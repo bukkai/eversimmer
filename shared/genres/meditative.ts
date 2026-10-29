@@ -25,7 +25,7 @@ export const meditative: GenreFile = {
       ownLoop: 1,
       drone: 0.85,
       droneShape: { root: 3, slowIV: 0.5 },
-      bells: { scattered: 0.3, glass: 0.6, none: 2 },
+      bells: { harp: 0.3, rhodes: 0.6, none: 2 },
       motifSound: { bells: 1, flute: 0.5 },
       pulse: { none: 1 },
       backbeat: { none: 1 },
@@ -35,7 +35,7 @@ export const meditative: GenreFile = {
       chords: { play: 1, rest: 2 },
       pad: { full: 1 },
     },
-    macros: { keys: 0.6, bloom: 1, homely: 0.5, focus: 1, veiled: 0.8 },
+    macros: { keys: 0.6, bloom: 1, homely: 0.5, focus: 1, veiled: 0.8, hushed: 1 },
     loop: {
       templates: [2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
       rhythm: { 2: [0, 0, 0, 0, 0.5, 2], 3: [0, 0, 0, 0, 1], 4: [0, 0, 0, 1] },

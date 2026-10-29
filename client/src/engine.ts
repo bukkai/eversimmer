@@ -4,33 +4,37 @@ import {
   getTrigger,
   initAudio,
   initStrudel,
+  loadBuffer,
   noteToMidi,
   samples,
   setTime,
   signal,
+  soundMap,
   webaudioOutput,
   type Pattern,
 } from "@strudel/web";
 import { registerSoundfonts } from "@strudel/soundfonts";
-import { cpsAtCycle, timeAtCycle, type TempoSegment } from "../../shared/clock";
+import { cpsAtCycle, cycleAt, timeAtCycle, type TempoSegment } from "../../shared/clock";
 import { formAt, paletteAt, type Section } from "../../shared/form";
 import { courseGlobals } from "../../shared/globals";
-import { styleWeights, tidesAt, trackKey } from "../../shared/palette";
+import { styleWeights, tidesAt, trackKey, type Tides } from "../../shared/palette";
 import { mapTarget, weightsAt, type MapPosition } from "../../shared/map";
 import { loadRegions } from "../../shared/regions";
 import { loadScore } from "../../shared/score";
 import { loadDrums } from "../../shared/drums";
 import { DRUM_MACHINES_URL, levelOf } from "../../shared/sounds";
 import { STONE } from "../../shared/stone";
-import { foldValue, RESTING_BROTH, scaleFor, type Broth, type Course, type PotState } from "../../shared/types";
+import { foldValue, RESTING_BROTH, scaleFor, STILL_AIR, type Air, type Broth, type Course, type PotState } from "../../shared/types";
 import { labelLayers, letThrough, type Layer } from "./layers";
-import { serverNow } from "./net";
+import { isSynced, serverNow } from "./net";
 import { SharedScheduler } from "./scheduler";
 
 const live: Broth = { ...RESTING_BROTH };
 let position: MapPosition = mapTarget(RESTING_BROTH);
 let form: Section[] = [];
 let timeShift = 0;
+let ownTides: Tides | undefined;
+let air: Air = STILL_AIR;
 let keys: { from: number; key: string }[] = [{ from: -Infinity, key: "D" }];
 let master = 0.8;
 let tempo: TempoSegment[] = [];
@@ -45,7 +49,7 @@ const trackKeyAt = (cycle: number) => trackKey(keyAt(cycle), paletteAt(form, cyc
 
 function setKeyFrom(cycle: number, key: string) {
   keys = [...keys.filter((k) => k.from < cycle), { from: cycle, key }];
-  const now = scheduler?.cycleNow() ?? -Infinity;
+  const now = currentCycle();
   while (keys.length > 1 && keys[1].from <= now) keys.shift();
 }
 
@@ -57,8 +61,9 @@ Object.assign(
     position: () => position,
     moment: (cycle) => formAt(form, cycle),
     palette: (cycle) => paletteAt(form, cycle),
-    tides: () => tidesAt(wallNow()),
-    style: () => styleWeights(tidesAt(wallNow())),
+    tides: () => tidesNow(),
+    style: () => styleWeights(tidesNow()),
+    air: () => air,
   }),
 );
 
@@ -84,6 +89,7 @@ let dull: BiquadFilterNode | undefined;
 let worn: GainNode | undefined;
 const OPEN_HZ = 20000;
 const LOFI_HZ = 5500;
+const FOG_HZ = 3500;
 const WORN = 0.35;
 
 function saturation(ctx: AudioContext) {
@@ -96,7 +102,8 @@ function lofiBus() {
   if (!dull || !worn) return;
   const lofi = weightsAt(position).lofi;
   const now = dull.context.currentTime;
-  dull.frequency.setTargetAtTime(OPEN_HZ * (LOFI_HZ / OPEN_HZ) ** lofi, now, 1);
+  const hz = Math.min(OPEN_HZ * (LOFI_HZ / OPEN_HZ) ** lofi, OPEN_HZ * (FOG_HZ / OPEN_HZ) ** air.fog);
+  dull.frequency.setTargetAtTime(hz, now, 1);
   worn.gain.setTargetAtTime(WORN * lofi, now, 1);
 }
 
@@ -122,7 +129,8 @@ const notes = new Map<string, string>();
 const layers = new Map<string, Layer[]>();
 let stoneCode = STONE;
 let stonePattern: Pattern | undefined;
-let evaluating = Promise.resolve();
+let evaluating = library.then(evaluateStone);
+let waiting: { from: number; id: string; pattern: Pattern }[] = [];
 const PATTERNS_KEPT = 6;
 const patterns = new Map<string, Pattern>();
 
@@ -154,12 +162,59 @@ export type EngineEvents = {
 };
 let events: EngineEvents = {};
 
-export async function startEngine(e: EngineEvents = {}) {
+function schedule(from: number, id: string, pattern: Pattern) {
+  if (scheduler) scheduler.setCourse(from, id, pattern);
+  else waiting = [...waiting.filter((c) => c.from < from), { from, id, pattern }];
+}
+
+const WARM_CYCLES = 4;
+const WARM_MAX_MS = 6000;
+
+function soundsAhead() {
+  const urls = new Set<string>();
+  if (!tempo.length || !isSynced()) return urls;
+  const from = currentCycle();
+  const to = from + WARM_CYCLES;
+  waiting.forEach((course, i) => {
+    const next = waiting[i + 1]?.from ?? Infinity;
+    if (next <= from || course.from >= to) return;
+    try {
+      for (const hap of course.pattern.queryArc(Math.max(from, course.from), Math.min(to, next))) {
+        const url = sampleUrl(foldValue(hap.value, noteToMidi));
+        if (url) urls.add(url);
+      }
+    } catch {}
+  });
+  return urls;
+}
+
+function sampleUrl(value: unknown) {
+  const { s, bank, n = 0, note } = (value ?? {}) as { s?: unknown; bank?: unknown; n?: unknown; note?: unknown };
+  if (typeof s !== "string") return undefined;
+  const sound = soundMap.get()[(bank ? `${bank}_${s}` : s).toLowerCase()];
+  const urls = sound?.data.type === "sample" ? sound.data.samples : undefined;
+  if (!urls) return undefined;
+  const pick = (list: string[]) =>
+    list[(((Math.round(Number(n)) || 0) % list.length) + list.length) % list.length]?.replace("#", "%23");
+  if (Array.isArray(urls)) return pick(urls);
+  const midi = typeof note === "number" ? note : typeof note === "string" ? noteToMidi(note) : 36;
+  const nearest = Object.keys(urls)
+    .filter((k) => !k.startsWith("_"))
+    .reduce<string | undefined>((best, k) => (!best || Math.abs(noteToMidi(k) - midi) < Math.abs(noteToMidi(best) - midi) ? k : best), undefined);
+  return nearest && pick(urls[nearest]);
+}
+
+export async function warmUp() {
+  await evaluating;
+  for (const url of soundsAhead()) void fetch(url).catch(() => {});
+}
+
+export async function startEngine(e: EngineEvents = {}, ready: Promise<unknown> = Promise.resolve()) {
   events = e;
   const session = (navigator as { audioSession?: { type: string } }).audioSession;
   if (session) session.type = "playback";
   await initAudio();
-  const repl = await library;
+  await library;
   const ctx = getAudioContext();
   masterBus(ctx);
   setInterval(() => {
@@ -192,7 +247,12 @@ export async function startEngine(e: EngineEvents = {}) {
     },
   );
   setTime(() => scheduler!.cycleNow());
-  await evaluateStone(repl);
+  await ready;
+  await evaluating;
+  const loads = [...soundsAhead()].map((url) => loadBuffer(url, ctx).catch(() => {}));
+  await Promise.race([Promise.all(loads), new Promise((r) => setTimeout(r, WARM_MAX_MS))]);
+  for (const c of waiting) scheduler.setCourse(c.from, c.id, c.pattern);
+  waiting = [];
   scheduler.start();
 }
 
@@ -208,9 +268,7 @@ export const currentStone = () => stoneCode;
 function useStone(code: string) {
   if (code === stoneCode) return;
   stoneCode = code;
-  evaluating = evaluating.then(async () => {
-    if (scheduler) await evaluateStone(await library);
-  });
+  evaluating = evaluating.then(async () => evaluateStone(await library));
 }
 
 export function loadCourse(course: Course) {
@@ -221,20 +279,22 @@ export function loadCourse(course: Course) {
     if (pattern) {
       notes.set(course.id, course.note || "a new course");
       layers.set(course.id, labelled.layers);
-      scheduler?.setCourse(course.startedAtCycle, course.id, pattern);
+      schedule(course.startedAtCycle, course.id, pattern);
       if (course.key) setKeyFrom(course.startedAtCycle, course.key);
     } else {
       events.onError?.("the new course failed to evaluate, kept the current one");
       events.onBroken?.(course.id, "failed to evaluate");
-      if (!scheduler?.courseAt(scheduler.cycleNow()) && stonePattern)
-        scheduler?.setCourse(course.startedAtCycle, "stone", stonePattern);
+      if (!scheduler?.courseAt(currentCycle()) && stonePattern) schedule(course.startedAtCycle, "stone", stonePattern);
     }
   });
   return evaluating;
 }
 
 export function applyState(state: PotState) {
-  if (state.epoch !== epoch) scheduler?.reset();
+  if (state.epoch !== epoch) {
+    scheduler?.reset();
+    waiting = [];
+  }
   epoch = state.epoch;
   tempo = state.tempo;
   keys = [{ from: -Infinity, key: state.key }];
@@ -242,6 +302,8 @@ export function applyState(state: PotState) {
   position = { ...state.map.position };
   form = state.form;
   timeShift = state.timeShift;
+  ownTides = state.tides;
+  air = state.air ?? STILL_AIR;
   useStone(state.stone ?? STONE);
   loadCourse({ ...state.course, key: undefined });
   if (state.upcoming) loadCourse(state.upcoming);
@@ -252,6 +314,9 @@ export const setBroth = (b: Broth) => Object.assign(live, b);
 export const setTimeShift = (ms: number) => (timeShift = ms);
 export const getTimeShift = () => timeShift;
 export const wallNow = () => serverNow() + timeShift;
+export const setTides = (t: Tides) => (ownTides = t);
+export const setAir = (a: Air) => (air = a);
+export const tidesNow = () => ownTides ?? tidesAt(wallNow());
 export const setForm = (f: Section[]) => (form = f);
 export const getForm = (): readonly Section[] => form;
 export const setMapPosition = (p: MapPosition) => (position = { ...p });
@@ -293,7 +358,7 @@ export const getKey = () => keyAt(currentCycle());
 export const getTrackKey = () => trackKeyAt(currentCycle());
 export const getScale = () =>
   scaleFor(getTrackKey(), live.valence, weightsAt(position), paletteAt(form, currentCycle()).parent);
-export const currentCycle = () => scheduler?.cycleNow() ?? 0;
+export const currentCycle = () => (tempo.length ? cycleAt(tempo, serverNow()) : 0);
 export const getCps = () => (tempo.length ? cpsAtCycle(tempo, currentCycle()) : 0);
 export const currentCourse = () => scheduler?.courseAt(currentCycle());
 export const currentLayers = (): readonly Layer[] => layers.get(scheduler?.courseAt(currentCycle()) ?? "") ?? [];

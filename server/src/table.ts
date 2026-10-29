@@ -55,7 +55,7 @@ export class Table {
     if (shared.keep) this.keeping = setInterval(() => this.keep(), KEEP_MS);
     this.coder = new LiveCoder(shared.client && sonnetWrite(shared.client, this.source, pot.stone), shared.liveCoder, {
       present: () => this.present,
-      wallNow: () => pot.wallNow(),
+      tides: () => pot.tides(),
       form: () => pot.state.form,
       cycle: () => pot.cycleNow(),
       broth: () => pot.state.broth,
@@ -86,7 +86,7 @@ export class Table {
     return this.source.talk ? this.people.size : this.places;
   }
 
-  private get places() {
+  get places() {
     return new Set(this.sockets.values()).size;
   }
 

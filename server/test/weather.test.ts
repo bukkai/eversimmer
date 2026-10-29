@@ -7,7 +7,8 @@ import { RESTING_BROTH } from "../../shared/types";
 import { Pantry } from "../src/pantry";
 import type { SourceContext } from "../src/source";
 import { between, Weather } from "../src/weather";
-import { ingredients, PULL, type Reading } from "../src/weather/mapping";
+import { haze, ingredients, lean, PULL, type Reading } from "../src/weather/mapping";
+import { moonAt, tideAt } from "../src/weather/moon";
 import { parseHours, type Hour } from "../src/weather/open-meteo";
 import { placeCalled } from "../src/weather/places";
 import { replayed } from "../src/weather/replay";
@@ -16,11 +17,11 @@ const HOUR = 60 * 60_000;
 const START = Date.UTC(2026, 9, 1, 10);
 const bergen = placeCalled("bergen");
 
-const calm: Omit<Hour, "at"> = { temperature: 12, precipitation: 0, code: 1, pressure: 1015, cloud: 20, wind: 5, gusts: 8, day: 1, light: 400 };
-const storm: Omit<Hour, "at"> = { temperature: 9, precipitation: 6, code: 65, pressure: 990, cloud: 100, wind: 60, gusts: 90, day: 1, light: 60 };
+const calm: Omit<Hour, "at"> = { temperature: 12, precipitation: 0, code: 1, pressure: 1015, cloud: 20, wind: 5, gusts: 8, day: 1, light: 400, visibility: 30_000 };
+const storm: Omit<Hour, "at"> = { temperature: 9, precipitation: 6, code: 65, pressure: 990, cloud: 100, wind: 60, gusts: 90, day: 1, light: 60, visibility: 3000 };
 
 const hours = (...each: Omit<Hour, "at">[]) => each.map((h, i) => ({ at: START + i * HOUR, ...h }));
-const reading = (h: Omit<Hour, "at">, more: Partial<Reading> = {}): Reading => ({ at: START, ...h, fall: 0, hour: 12, ...more });
+const reading = (h: Omit<Hour, "at">, more: Partial<Reading> = {}): Reading => ({ at: START, ...h, fall: 0, hour: 12, usual: h.temperature, moon: 0, ...more });
 
 function weatherAt(given: Hour[]) {
   let now = START;
@@ -67,7 +68,6 @@ test("a storm is livelier, busier and darker than a calm day, and a falling baro
   const gale = reading(storm);
   assert.ok(PULL.energy(still) < 0 && PULL.energy(gale) > 0.9);
   assert.ok(PULL.density(gale) > 0.8 && PULL.density(still) < 0);
-  assert.ok(PULL.warmth(gale) > 0 && PULL.warmth(still) < 0);
   assert.ok(PULL.valence(gale) < PULL.valence(still));
   assert.equal(PULL.tension(reading(calm, { fall: 6 })), 1);
   assert.ok(PULL.tension(reading(calm, { fall: -3 })) < 0);
@@ -207,4 +207,76 @@ test("the sky says the place, the weather in words and how fast its time runs", 
   } finally {
     weather.close();
   }
+});
+
+test("the cold is bright and the warmth muffled, and a mild spell is heard as one", () => {
+  const at = (temperature: number, usual = temperature) => PULL.warmth(reading({ ...calm, temperature }, { usual }));
+  assert.ok(at(-5) < at(5) && at(5) < at(15) && at(15) < at(25));
+  assert.ok(at(-5) < -0.5 && at(25) > 0.5);
+  assert.ok(at(8, 2) > at(8) + 0.2);
+});
+
+test("a bright moon in a clear night lifts it and pulls it back from the cosmic, behind cloud it does nothing", () => {
+  const night = { ...calm, day: 0, light: 0, cloud: 0 };
+  const dark = reading(night, { moon: 0 });
+  const full = reading(night, { moon: 1 });
+  assert.ok(PULL.valence(full) > PULL.valence(dark) + 0.4);
+  assert.ok(PULL.texture(full) < PULL.texture(dark));
+  assert.ok(lean(full).bright! > 0.9 && lean(dark).bright === 0);
+  const clouded = { ...night, cloud: 100 };
+  assert.equal(PULL.valence(reading(clouded, { moon: 1 })), PULL.valence(reading(clouded, { moon: 0 })));
+  assert.equal(lean(reading(clouded, { moon: 1 })).bright, 0);
+  assert.equal(lean(reading(calm, { moon: 1 })).bright, 0);
+});
+
+test("a gale quickens the tempo a little and a still day slows it, warmth makes the swing lazier", () => {
+  assert.ok(lean(reading(storm)).tempo! > 0.9 && lean(reading({ ...calm, wind: 0, gusts: 0 })).tempo! < -0.5);
+  assert.ok(lean(reading({ ...calm, temperature: 24 })).swing! > 0.5 && lean(reading({ ...calm, temperature: 0 })).swing! < 0);
+});
+
+test("the moon goes through its phases as the almanac has them", () => {
+  const full = moonAt(bergen, Date.UTC(2026, 9, 26, 4, 12));
+  const fresh = moonAt(bergen, Date.UTC(2026, 10, 9, 7, 2));
+  assert.ok(full.lit > 0.98 && Math.abs(full.phase - 0.5) < 0.03);
+  assert.ok(fresh.lit < 0.02 && Math.min(fresh.phase, 1 - fresh.phase) < 0.03);
+  const quarter = moonAt(bergen, Date.UTC(2026, 10, 1, 20));
+  assert.ok(quarter.lit > 0.3 && quarter.lit < 0.7 && quarter.phase > 0.6 && quarter.phase < 0.9);
+});
+
+test("the tide comes round in 12 hours and 25 minutes, with high water in Bergen when the tables have it", () => {
+  const off = (t: number, phase: number) => {
+    const d = Math.abs(tideAt(bergen.tideLag, t) - phase);
+    return Math.min(d, 1 - d) * 745;
+  };
+  assert.ok(off(Date.UTC(2026, 9, 29, 11, 46), 0) < 45);
+  assert.ok(off(Date.UTC(2026, 9, 30, 0, 12), 0) < 45);
+  assert.ok(off(Date.UTC(2026, 9, 29, 17, 43), 0.5) < 60);
+  const t = Date.UTC(2026, 9, 29, 3);
+  const turned = tideAt(0, t + (12 * 60 + 25) * 60_000) - tideAt(0, t);
+  assert.ok(Math.abs(turned) < 0.01 || Math.abs(Math.abs(turned) - 1) < 0.01);
+});
+
+test("the weather pot's tides are the sea's and the moon's, following the weather's clock", async () => {
+  const { weather, at } = weatherAt(hours(calm, calm));
+  await weather.ready;
+  const tides = weather.tides(at(START));
+  assert.equal(tides.day, tideAt(bergen.tideLag, START));
+  assert.equal(tides.season, moonAt(bergen, START).phase);
+  weather.close();
+});
+
+test("the fog is as thick as the view is short, and the sky's code counts where there is no view", () => {
+  assert.equal(haze(reading(calm)), 0);
+  assert.ok(haze(reading({ ...calm, visibility: 200 })) === 1);
+  assert.ok(haze(reading({ ...calm, visibility: 2000 })) > 0.3 && haze(reading({ ...calm, visibility: 2000 })) < 0.7);
+  assert.ok(haze(reading(storm)) > 0.1 && haze(reading(storm)) <= 0.4);
+  assert.equal(haze(reading({ ...calm, code: 45, visibility: 20_000 })), 0.7);
+});
+
+test("the weather pot's air carries the fog, and lets go of it with the weather", async () => {
+  const { weather, at } = weatherAt(hours({ ...calm, visibility: 300, code: 45 }, { ...calm, visibility: 300, code: 45 }));
+  await weather.ready;
+  assert.equal(weather.air(at(START)).fog, 1);
+  assert.ok(weather.air(at(START + 10 * HOUR)).fog < 0.01);
+  weather.close();
 });

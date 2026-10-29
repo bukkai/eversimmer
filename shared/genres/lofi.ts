@@ -17,7 +17,7 @@ export const lofi: GenreFile = {
   },
   preset: {
     knobs: {
-      keys: { epiano: 1, piano: 2, organ: 0.2, vibraphone: 0.3, square: 0.4 },
+      keys: { epiano: 1, piano: 2, organ: 0.2, vibraphone: 0.3, guitar: 0.4 },
       role: { comping: 1, arpeggios: 0.3, held: 1, resting: 1 },
       octave: { lower: 1, middle: 1, higher: 0.2 },
       progression: 0.2,

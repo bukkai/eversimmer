@@ -24,7 +24,7 @@ export const progPsy: GenreFile = {
       swing: { nearlyStraight: 1 },
       drone: 0.9,
       droneShape: { root: 3, toVII: 1, slowVIandVII: 1, slowIV: 1 },
-      bells: { scattered: 0.1, none: 7 },
+      bells: { harp: 0.1, none: 7 },
       drums: { dusty909: 1, tr909: 2 },
       pulse: { fourFloor: 1 },
       backbeat: { none: 1, clap: 2 },

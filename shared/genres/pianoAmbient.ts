@@ -25,7 +25,7 @@ export const pianoAmbient: GenreFile = {
       ownLoop: 2,
       drone: 0.15,
       droneShape: { root: 1, slowIV: 1 },
-      bells: { scattered: 0.3, musicBox: 0.4, none: 3 },
+      bells: { harp: 0.3, guitar: 0.4, none: 3 },
       motifSound: { bells: 0.5, flute: 0.5 },
       pulse: { heartbeat: 0.3, none: 2 },
       backbeat: { none: 1 },
@@ -35,7 +35,7 @@ export const pianoAmbient: GenreFile = {
       chords: { play: 1 },
       pad: { full: 0.4, bed: 1 },
     },
-    macros: { keys: 1, homely: 1, focus: 1, wear: 0.3, bloom: 0.3 },
+    macros: { keys: 1, homely: 1, focus: 1, wear: 0.3, bloom: 0.3, hushed: 1 },
     loop: {
       templates: [2, 1, 0.5, 2, 0, 1, 0, 0, 1, 1, 0.5, 1, 0, 0, 0, 0, 0, 0, 1.5, 1],
       rhythm: { 2: [0, 1, 0, 2, 0.5, 0], 3: [0, 0, 1, 1, 0], 4: [0, 1, 1, 0] },

@@ -1,6 +1,7 @@
 import type { TempoSegment } from "./clock";
 import type { Section } from "./form";
 import type { MapPosition } from "./map";
+import type { Tides } from "./palette";
 import { modeKnobAt } from "./presets";
 
 export type Broth = {
@@ -17,6 +18,9 @@ export type Broth = {
 export type BrothKey = keyof Broth;
 
 export const MAX_VOICES = 6;
+
+export type Air = { fog: number };
+export const STILL_AIR: Air = { fog: 0 };
 
 export const RESTING_BROTH: Broth = {
   valence: 0,
@@ -122,6 +126,8 @@ export type PotState = {
   map: PotMap;
   form: Section[];
   timeShift: number;
+  tides?: Tides;
+  air?: Air;
   upcoming?: Course;
   recipe: RecipeEntry[];
 };

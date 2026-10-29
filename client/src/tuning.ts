@@ -1,9 +1,9 @@
 import { blockInfo, FILLS, nextTrack, paletteAt, sectionAt, type Section } from "../../shared/form";
 import { AXES, REGIONS, type MapAxis } from "../../shared/map";
-import { describePalette, describeStyle, styleWeights, tidesAt } from "../../shared/palette";
+import { describePalette, describeStyle, styleWeights } from "../../shared/palette";
 import { BROTH_KEYS, BROTH_RANGES, RESTING_BROTH, type Broth, type BrothKey, type PotMap } from "../../shared/types";
 import { $ } from "./dom";
-import { currentCycle, currentStone, getForm, getKey, getTimeShift, secondsUntil, wallNow } from "./engine";
+import { currentCycle, currentStone, getForm, getKey, getTimeShift, secondsUntil, tidesNow } from "./engine";
 import { send } from "./net";
 
 const code = $<HTMLTextAreaElement>("code");
@@ -159,7 +159,7 @@ function showForm(cycle: number) {
     ? `${where} · ${next.drop ? "drop" : next.opens ? `next track (${next.kind})` : next.kind} in ${Math.ceil(next.cycle - cycle)} bars`
     : where;
   $("track-next").textContent = describeNextTrack([...form], cycle);
-  const tides = tidesAt(wallNow());
+  const tides = tidesNow();
   const travelled = getTimeShift() / 3_600_000;
   const travel = $<HTMLSelectElement>("travel");
   if (document.activeElement !== travel) travel.value = String(Math.round(travelled));

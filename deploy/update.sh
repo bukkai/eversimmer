@@ -23,8 +23,7 @@ echo "building $new"
 rm -rf "$release"
 mkdir -p "$release"
 git -C "$ROOT/repo" archive "$new" | tar -x -C "$release"
-# the source of exactly this version, which the server hands to anyone who asks (AGPL, see /source)
-git -C "$ROOT/repo" archive --format=tar.gz --prefix=eversimmer/ "$new" > "$release/source.tar.gz"
+# the commit playing, so /source points at exactly this version on GitHub (AGPL)
 echo "$new" > "$release/COMMIT"
 
 # the dependencies' own install scripts stay off: nothing here needs them

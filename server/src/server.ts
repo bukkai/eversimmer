@@ -27,7 +27,11 @@ export function potServer({ pots, soon = [], ...shared }: Shared & { pots: PotKi
       return;
     }
     if (path === POTS_PATH) {
-      const listings: Listings = { live: pots.map(({ id, name, line = "" }) => ({ id, name, line })), soon };
+      const live = pots.map(({ id, name, line = "" }) => {
+        const table = tables.get(id)!;
+        return { id, name, line, listening: table.places, since: table.pot.state.epoch };
+      });
+      const listings: Listings = { live, soon };
       res.writeHead(200, { "content-type": "application/json", "cache-control": "no-cache" });
       res.end(JSON.stringify(listings));
       return;
@@ -40,7 +44,7 @@ export function potServer({ pots, soon = [], ...shared }: Shared & { pots: PotKi
       serveSource(res);
       return;
     }
-    serveClient(req.url ?? "/", res, (path) => tables.has(path.slice(1)));
+    serveClient(req.url ?? "/", res, (path) => tables.get(path === "/" ? home : path.slice(1))?.door());
   });
 
   const wss = new WebSocketServer({ noServer: true, maxPayload: 64 * 1024 });

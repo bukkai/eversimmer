@@ -4,7 +4,7 @@ import { macroSignals } from "./macros";
 import { genreSignals, weightsAt, type MapPosition } from "./map";
 import { paletteSignals, styleSignals, type Palette, type Style, type Tides } from "./palette";
 import { shareAt, type SettingKnob } from "./presets";
-import { BROTH_KEYS, type Broth, type BrothKey } from "./types";
+import { BROTH_KEYS, type Air, type Broth, type BrothKey } from "./types";
 
 export type CourseSources = {
   broth: () => Readonly<Broth>;
@@ -14,12 +14,13 @@ export type CourseSources = {
   palette: (cycle: number) => Palette;
   tides: () => Tides;
   style: () => Record<Style, number>;
+  air?: () => Readonly<Air>;
 };
 
 export function courseGlobals<P>(signal: (fn: (t: number) => number) => P, from: CourseSources) {
   const genre = genreSignals(signal, from.position);
   const style = styleSignals(signal, from.style);
-  const macro = macroSignals(signal, { broth: from.broth, style: from.style, position: from.position });
+  const macro = macroSignals(signal, { broth: from.broth, style: from.style, position: from.position, air: from.air });
   const shares = new Map<string, P>();
   const shareOf = (knob: string, settings: string[]) => {
     const key = `${knob}:${settings.join(",")}`;

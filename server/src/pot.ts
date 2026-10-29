@@ -14,7 +14,7 @@ import {
   trackEnding,
   type Seam,
 } from "../../shared/form";
-import { choosePalette, homeKey, tidesAt, type Palette } from "../../shared/palette";
+import { choosePalette, homeKey, tidesAt, type Palette, type Tides } from "../../shared/palette";
 import { AXES, brothFor, cpsAt, mapTarget, nearestRegions, REGIONS, seasonLean, weightsAt, type MapPosition } from "../../shared/map";
 import { clamp } from "../../shared/numbers";
 import { RECIPE_LENGTH, type ServerMessage } from "../../shared/protocol";
@@ -23,6 +23,7 @@ import {
   BROTH_RANGES,
   MAX_VOICES,
   RESTING_BROTH,
+  STILL_AIR,
   type Broth,
   type BrothKey,
   type Course,
@@ -40,6 +41,7 @@ const TEMPO_LEAD_MS = 500;
 const SWAP_LEAD_CYCLES = 2;
 const SWAP_ALIGN_CYCLES = 4;
 const MAX_TIME_SHIFT_MS = 400 * 24 * 60 * 60_000;
+const TIDES_EVERY_MS = 30_000;
 const FORM_LEAD_CYCLES = 4;
 const MAP_HALF_LIFE_S = 150;
 const THEME_CHANCE = 0.2;
@@ -76,6 +78,8 @@ export class Pot {
   private held: Goal | undefined;
   private jump: (Goal & { cycle: number }) | undefined;
   private timers: NodeJS.Timeout[];
+  private tidesSent = -Infinity;
+  private airSent = 0;
 
   constructor(
     { id, name, stone = STONE }: PotName & PotMusic,
@@ -85,7 +89,8 @@ export class Pot {
   ) {
     const epoch = Math.floor(now());
     const broth = { ...RESTING_BROTH };
-    const map = placeOnMap(seasonalTarget(broth, Date.now()));
+    const tides = source.tides?.(now()) ?? tidesAt(Date.now());
+    const map = placeOnMap(seasonalTarget(broth, tides));
     this.baseCps = cpsAt(map.position);
     const cps = nudgedCps(this.baseCps, broth.energy);
     this.stone = stone;
@@ -97,14 +102,16 @@ export class Pot {
       stone,
       epoch,
       tempo: [{ cycle: 0, at: epoch, cps }],
-      key: homeKey(Date.now()),
+      key: homeKey(tides),
       broth,
       map,
-      form: planTrack(0, liveliness(broth), cps, map.position, { palette: choosePalette(Date.now(), undefined), theme: true }),
+      form: planTrack(0, liveliness(broth), cps, map.position, { palette: choosePalette(tides, undefined), theme: true }),
       timeShift: 0,
+      tides: source.tides && tides,
+      air: source.air && { ...STILL_AIR },
       ingredients: source.ingredients,
       course,
-      recipe: [{ id: course.id, at: epoch, note: course.note, code: stone, key: homeKey(Date.now()), broth: { ...broth }, cps }],
+      recipe: [{ id: course.id, at: epoch, note: course.note, code: stone, key: homeKey(tides), broth: { ...broth }, cps }],
     };
     if (kept) {
       try {
@@ -164,7 +171,7 @@ export class Pot {
     this.held = kept.held;
     this.jump = kept.jump;
     const knobs = (p: object | undefined) => Object.keys(p ?? {}).sort().join();
-    const fresh = knobs(choosePalette(this.wallNow(), undefined));
+    const fresh = knobs(choosePalette(this.tides(), undefined));
     const last = saved.form[saved.form.length - 1];
     const playable = saved.form.every((s) => knobs(s.palette) === fresh);
     if (!playable || !last || last.cycle + last.length < cycle + FORM_LEAD_CYCLES)
@@ -210,7 +217,7 @@ export class Pot {
   }
 
   private mapGoal() {
-    return this.held?.at ?? seasonalTarget(this.state.broth, this.wallNow());
+    return this.held?.at ?? seasonalTarget(this.state.broth, this.tides());
   }
 
   private sendBroth() {
@@ -225,6 +232,20 @@ export class Pot {
     easeBroth(this.state.broth, this.source.targets(t), dt);
     this.wander(dt);
     if (this.source.settle(t)) this.broadcast({ t: "ingredients", ingredients: this.source.ingredients });
+    const air = this.state.air;
+    const towards = this.source.air?.(t);
+    if (air && towards) {
+      air.fog += (towards.fog - air.fog) * (1 - 2 ** (-dt / BROTH_HALF_LIFE_S));
+      if (Math.abs(air.fog - this.airSent) > 0.005) {
+        this.airSent = air.fog;
+        this.broadcast({ t: "air", air });
+      }
+    }
+    if (this.source.tides && t - this.tidesSent >= TIDES_EVERY_MS) {
+      this.tidesSent = t;
+      this.state.tides = this.source.tides(t);
+      this.broadcast({ t: "tides", tides: this.state.tides });
+    }
     this.lastTick = t;
     const broth = this.state.broth;
     const moved = (Object.keys(broth) as BrothKey[]).some((k) => Math.abs(broth[k] - this.lastSent[k]) > 0.002);
@@ -323,10 +344,14 @@ export class Pot {
     return Date.now() + this.state.timeShift;
   }
 
+  tides() {
+    return this.source.tides?.(now()) ?? tidesAt(this.wallNow());
+  }
+
   travel(ms: number) {
     this.state.timeShift = Math.min(MAX_TIME_SHIFT_MS, Math.max(0, ms));
     this.broadcast({ t: "timeShift", ms: this.state.timeShift });
-    this.setKey(homeKey(this.wallNow()));
+    this.setKey(homeKey(this.tides()));
     this.setMap(this.mapGoal());
     this.newTrackNow();
   }
@@ -343,7 +368,7 @@ export class Pot {
   }
 
   private nextPalette(previous: Palette | undefined, joined: boolean, at = this.state.map.position) {
-    return choosePalette(this.wallNow(), previous, weightsAt(at), Math.random, joined);
+    return choosePalette(this.tides(), previous, weightsAt(at), Math.random, joined, this.source.lean?.(now()));
   }
 
   private nextTheme() {
@@ -470,9 +495,9 @@ function easeBroth(broth: Broth, targets: MoodTargets, dt: number) {
     broth[k] += (target - broth[k]) * step;
 }
 
-function seasonalTarget(b: Broth, ms: number): MapPosition {
+function seasonalTarget(b: Broth, tides: Tides): MapPosition {
   const target = mapTarget(b);
-  const lean = seasonLean(tidesAt(ms).season);
+  const lean = seasonLean(tides.season);
   for (const k of AXES) target[k] = clamp(target[k] + lean[k]);
   return target;
 }

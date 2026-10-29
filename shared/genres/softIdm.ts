@@ -24,7 +24,7 @@ export const softIdm: GenreFile = {
       ownLoop: 2.1,
       swing: { nearlyStraight: 1 },
       drone: 0.25,
-      bells: { scattered: 0.4, glass: 1.3, musicBox: 0.3, none: 1.5 },
+      bells: { harp: 0.4, rhodes: 1.3, guitar: 0.3, none: 1.5 },
       drums: { dusty909: 0.5, short909: 1, crisp: 0.5, linn: 1, tr606: 2 },
       backbeat: { twoAndFour: 1, onThree: 0.5 },
       perc: { clicks: 1 },

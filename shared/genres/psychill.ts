@@ -17,7 +17,7 @@ export const psychill: GenreFile = {
   },
   preset: {
     knobs: {
-      bells: { scattered: 0.4, glass: 0.5, musicBox: 0.5, none: 3 },
+      bells: { harp: 0.4, rhodes: 0.5, guitar: 0.5, none: 3 },
       drone: 0.9,
       pulse: { push: 1 },
       backbeat: { onThree: 1 },

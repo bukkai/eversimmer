@@ -8,6 +8,8 @@ export const SEASON_MS = 19 * 24 * 60 * 60_000;
 
 export type Tides = { day: number; season: number };
 
+export type Lean = { bright?: number; tempo?: number; swing?: number };
+
 export const tidesAt = (ms: number): Tides => ({ day: (ms / DAY_TIDE_MS) % 1, season: (ms / SEASON_MS) % 1 });
 
 export type Palette = {
@@ -49,7 +51,7 @@ export type Palette = {
 };
 
 export const KEY_SOUNDS = [
-  "electric piano", "piano", "organ", "vibraphone", "soft square", "moody square in half time", "drifting held chords with a ninth",
+  "electric piano", "piano", "organ", "vibraphone", "nylon guitar", "moody square in half time", "strings holding the chords with a ninth",
   "a dub chord stab drowned in delay",
 ];
 export const MOODY = settingOf("keys", "moody");
@@ -57,7 +59,7 @@ export const DRIFT = settingOf("keys", "drift");
 export const DUB = settingOf("keys", "dub");
 export const KEY_ROLES = ["comping", "arpeggios", "held chords", "resting", "house stabs in 3-3-2"];
 export const VOICINGS = ["close sevenths", "drop voicing", "open with a ninth", "rootless", "shell", "six-nine", "in fourths"];
-export const BELLS = ["scattered bells", "a glass motif", "a music-box motif", "no bells"];
+export const BELLS = ["scattered harp notes", "a Rhodes motif", "a guitar motif", "no bells"];
 export const GROOVES = ["laid-back", "boom-bap", "skipping", "broken"];
 export const SWINGS = [0.08, 1 / 6, 0.28];
 export const SWING_WORDS = ["nearly straight", "a light swing", "a heavy swing"];
@@ -80,7 +82,7 @@ export const DRUMKITS = [
 export const TR909_KIT = settingOf("drums", "tr909");
 export const TR606_KIT = settingOf("drums", "tr606");
 export const BASS_TONES = ["a round sine bass", "a warm triangle bass", "a plucked bass"];
-export const MOTIF_SOUNDS = ["bells", "a soft flute", "a muted pluck"];
+export const MOTIF_SOUNDS = ["the bells' instrument", "a flute", "a muted guitar"];
 const TEMPO_SPREAD = 0.06;
 const TEMPO_JOINED = 0.02;
 
@@ -230,13 +232,13 @@ const settled = (weights: number[], random: () => number) =>
   weights.filter((w) => w > 0).length === 1 ? weights.findIndex((w) => w > 0) : weighted(weights, random);
 
 export function choosePalette(
-  ms: number, previous: Palette | undefined, weights: Partial<Record<string, number>> = {}, random = Math.random, joined = false,
+  { day, season }: Tides, previous: Palette | undefined, weights: Partial<Record<string, number>> = {}, random = Math.random, joined = false,
+  lean: Lean = {},
 ): Palette {
-  const { day, season } = tidesAt(ms);
   const crossing = cross(weights, random);
   const knobs = crossedKnobs(crossing, weights);
   const again = (key: keyof Palette, i: number, factor: number) => (previous && previous[key] === i ? factor : 1);
-  const bright = cosine(day, 0.25);
+  const bright = Math.min(1, Math.max(0, cosine(day, 0.25) + 0.6 * (lean.bright ?? 0)));
   const busy = cosine(day, 0.5);
   const still = cosine(day, 0);
 
@@ -258,7 +260,7 @@ export function choosePalette(
     random,
   );
   const bells = weighted(
-    [1, 0.4 + 0.6 * busy, 0.4 + 0.6 * still, role === 3 ? 0 : (0.2 + 0.3 * (1 - busy)) * again("bells", 3, 0.2)].map(
+    [1, (0.4 + 0.6 * busy) * (1 + Math.max(0, lean.bright ?? 0)), 0.4 + 0.6 * still, role === 3 ? 0 : (0.2 + 0.3 * (1 - busy)) * again("bells", 3, 0.2)].map(
       (w, i) => w * knobs.bells[i] * again("bells", i, 0.6),
     ),
     random,
@@ -270,10 +272,10 @@ export function choosePalette(
       random,
     ) - 1;
   const spread = (x: number) => Math.min(1 + TEMPO_SPREAD, Math.max(1 - TEMPO_SPREAD, x));
-  const free = 1 + TEMPO_SPREAD * (2 * random() - 1);
+  const free = spread(1 + TEMPO_SPREAD * (2 * random() - 1 + 0.6 * (lean.tempo ?? 0)));
   const tempo = joined && previous ? spread(previous.tempo + TEMPO_JOINED * (2 * random() - 1) - 0.3 * (previous.tempo - 1)) : free;
   const groove = weighted(GROOVES.map((_, i) => again("groove", i, 0.2)), random);
-  const swing = weighted(knobs.swing.map((w, i) => w * again("swing", i, 0.5)), random);
+  const swing = weighted(knobs.swing.map((w, i) => w * Math.max(0.2, 1 + 0.6 * (i - 1) * (lean.swing ?? 0)) * again("swing", i, 0.5)), random);
   const kit = weighted(KITS.map((_, i) => again("kit", i, 0.4)), random);
   const drums = weighted(DRUMKITS.map((_, i) => knobs.drums[i] * again("drums", i, 0.15)), random);
   const wow = random();
@@ -353,7 +355,7 @@ export const describeCrossing = (p: Palette) =>
   (p.mutated ? `; this block moves ${KNOB_WORDS[p.mutated]}` : "");
 
 const FIFTHS = ["Bb", "F", "C", "G", "D", "A", "E"];
-export const homeKey = (ms: number) => FIFTHS[Math.floor(tidesAt(ms).season * FIFTHS.length)];
+export const homeKey = ({ season }: Tides) => FIFTHS[Math.floor(season * FIFTHS.length)];
 
 const FIFTHS_WORDS = ["a fifth down", "in the pot's key", "a fifth up", "two fifths up"];
 

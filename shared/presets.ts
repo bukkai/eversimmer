@@ -5,12 +5,12 @@ export const GENRES = GENRE_FILES.map((g) => g.region.id);
 export type Genre = string;
 
 export const SETTINGS = {
-  keys: ["epiano", "piano", "organ", "vibraphone", "square", "moody", "drift", "dub"],
+  keys: ["epiano", "piano", "organ", "vibraphone", "guitar", "moody", "drift", "dub"],
   role: ["comping", "arpeggios", "held", "resting", "houseStabs"],
   octave: ["lower", "middle", "higher"],
   swing: ["nearlyStraight", "light", "heavy"],
   droneShape: ["root", "toVII", "toVIandVII", "toIVVIandVII", "slowVIandVII", "slowIV"],
-  bells: ["scattered", "glass", "musicBox", "none"],
+  bells: ["harp", "rhodes", "guitar", "none"],
   motifSound: ["bells", "flute", "pluck"],
   drums: ["dusty909", "short909", "brushes", "slackSnare", "jazz", "crisp", "linn", "rimshot", "tr909", "tr606"],
   pulse: ["boomBap", "heavyBoomBap", "push", "heartbeat", "none", "fourFloor"],
@@ -71,7 +71,7 @@ export type Preset = {
 };
 
 export const REST: Knobs = {
-  keys: { epiano: 1, piano: 1, organ: 1, vibraphone: 1, square: 1 },
+  keys: { epiano: 1, piano: 1, organ: 1, vibraphone: 1, guitar: 1 },
   role: { comping: 1, arpeggios: 1, held: 1, resting: 1 },
   octave: { lower: 1, middle: 1, higher: 1 },
   progression: 1,
@@ -79,7 +79,7 @@ export const REST: Knobs = {
   swing: { nearlyStraight: 1, light: 1, heavy: 0.4 },
   drone: 0,
   droneShape: { root: 1, toVII: 1, toVIandVII: 1, toIVVIandVII: 1 },
-  bells: { scattered: 1, glass: 1, musicBox: 1, none: 1 },
+  bells: { harp: 1, rhodes: 1, guitar: 1, none: 1 },
   motifSound: { bells: 1, flute: 1, pluck: 1 },
   drums: { dusty909: 1, short909: 1, brushes: 1, slackSnare: 1, jazz: 1, crisp: 1, linn: 1, rimshot: 1 },
   pulse: { boomBap: 1 },

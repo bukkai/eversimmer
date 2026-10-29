@@ -24,7 +24,7 @@ export const downtempo: GenreFile = {
       ownLoop: 2.1,
       swing: { nearlyStraight: 0.5, light: 1.5, heavy: 0.1 },
       drone: 0.33,
-      bells: { scattered: 0.2, glass: 1, musicBox: 1, none: 0.3 },
+      bells: { harp: 0.2, rhodes: 1, guitar: 1, none: 0.3 },
       motifSound: { bells: 0.2, flute: 1, pluck: 1.2 },
       drums: { dusty909: 1, short909: 0.1, brushes: 0.1, slackSnare: 1, jazz: 0.1, crisp: 1, linn: 1, rimshot: 0.1 },
       pulse: { heavyBoomBap: 2, push: 1 },

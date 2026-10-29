@@ -24,7 +24,7 @@ export const dubTechno: GenreFile = {
       swing: { nearlyStraight: 1 },
       drone: 0.5,
       droneShape: { root: 1, slowVIandVII: 0.5, slowIV: 0.5 },
-      bells: { scattered: 0.03, glass: 0.03, musicBox: 0.03, none: 7 },
+      bells: { harp: 0.03, rhodes: 0.03, guitar: 0.03, none: 7 },
       drums: { dusty909: 1, tr909: 1 },
       pulse: { fourFloor: 1 },
       backbeat: { onThree: 0.25, none: 1 },

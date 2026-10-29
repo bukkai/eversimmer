@@ -2,7 +2,8 @@ import type { TempoSegment } from "./clock";
 import type { Section } from "./form";
 import type { Person } from "./identity";
 import type { MapPosition } from "./map";
-import type { Broth, Course, Ingredient, PotMap, PotState, RecipeEntry } from "./types";
+import type { Tides } from "./palette";
+import type { Air, Broth, Course, Ingredient, PotMap, PotState, RecipeEntry } from "./types";
 
 export type ChatLine = {
   id: string;
@@ -42,7 +43,7 @@ export type Sky = {
 
 export type Door = { name: string; talk: boolean; devControls: boolean; sky?: Sky };
 export const DOOR_PATH = "/door";
-export type Listing = { id?: string; name: string; line: string };
+export type Listing = { id?: string; name: string; line: string; listening?: number; since?: number };
 export type Listings = { live: Listing[]; soon: Listing[] };
 export const POTS_PATH = "/pots";
 
@@ -60,6 +61,8 @@ export type ServerMessage =
   | { t: "map"; map: PotMap }
   | { t: "form"; form: Section[] }
   | { t: "timeShift"; ms: number }
+  | { t: "tides"; tides: Tides }
+  | { t: "air"; air: Air }
   | { t: "course"; course: Course; entry: RecipeEntry }
   | { t: "key"; key: string }
   | { t: "sky"; sky: Sky };

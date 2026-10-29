@@ -11,6 +11,7 @@ export type Hour = {
   gusts: number;
   day: number;
   light: number;
+  visibility: number;
 };
 
 const VARIABLES = {
@@ -23,8 +24,9 @@ const VARIABLES = {
   gusts: "wind_gusts_10m",
   day: "is_day",
   light: "shortwave_radiation",
+  visibility: "visibility",
 } as const;
-const FALLBACK: Omit<Hour, "at"> = { temperature: 10, precipitation: 0, code: 0, pressure: 1013, cloud: 50, wind: 0, gusts: 0, day: 0, light: 0 };
+const FALLBACK: Omit<Hour, "at"> = { temperature: 10, precipitation: 0, code: 0, pressure: 1013, cloud: 50, wind: 0, gusts: 0, day: 0, light: 0, visibility: 20_000 };
 
 export const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
 export const HISTORY_URL = "https://historical-forecast-api.open-meteo.com/v1/forecast";

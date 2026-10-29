@@ -282,6 +282,7 @@ a.station:hover { color: inherit; }
   border-radius: 50%;
 }
 #pots .live > a::before { background: var(--accent); animation: simmer 3.2s ease-in-out infinite; }
+#pots .stats { grid-column: 2; margin-top: 0.3rem; }
 #pots .soon > div::before { border: 1px solid var(--muted); }
 #pots .soon .name { color: var(--muted); }
 #pots .live a:hover .name { color: var(--accent); }

@@ -6,7 +6,7 @@ import { HELPER_DOCS } from "../../shared/helpers";
 import { MACRO_NAMES, MACROS, type Macro } from "../../shared/macros";
 import { GENRES, PRESETS } from "../../shared/presets";
 import { AXES, BEATS_PER_CYCLE, REGIONS, weightsAt } from "../../shared/map";
-import { describePalette, describeStyle, homeKey, styleWeights, tidesAt, trackKey } from "../../shared/palette";
+import { describePalette, describeStyle, homeKey, styleWeights, trackKey, type Tides } from "../../shared/palette";
 import { DRUM_PART_NAMES, drumSource } from "../../shared/drums";
 import { partSource, REGION_PART_NAMES, REGION_PARTS } from "../../shared/regions";
 import { SCORE, SCORE_NAMES } from "../../shared/score";
@@ -85,11 +85,11 @@ Every track is its own record. When it starts, the server picks a palette for it
 - palette.root: the root of the current chord as a scale degree, from the track's sixteen-bar progression, which climbs back home into the drop, or from the track's own short loop, which may change chord an eighth before the bar. Use it for all harmony, like n(coloured("[0,4]".add(palette.root))) or n(coloured("<[0 2 4 7]*4>".add(palette.root))), so every part follows the track's chords; don't write progressions of your own over it. Add the root after a part's rhythm (chord.struct(...).add(palette.root)), so each note reads the chord at its own onset.
 - palette.colour (an index: 0 in the key, 1 a dominant seventh, 2 a minor seventh, 3 a major seventh): a chord of the track's own loop may sit outside the key, like V7 in minor. Pass every pitched part through coloured(...), last, just inside n(...), so its chord tones get the sharps and flats the chord asks for.
 - palette.chordBars: how many bars the current chord holds from this bar, up to the next even bar, and 0 where it carries on from the bar before. A part that holds its chord until it changes plays only where it is above 0 and lasts that long, like the stone's pad: .mask(palette.chordBars.fmap(b => b > 0)).clip(palette.chordBars).
-- palette.voicing (0 … 6), palette.keys (0 … 5, which instrument plays the chords; 5 is the moody square of regions.moody), palette.role (0 comping, 1 arpeggios, 2 held chords, 3 resting for the whole track), palette.octave (-1, 0, 1), palette.bells (0 scattered, 1 a glass motif, 2 a music-box motif, 3 none), palette.motif (0 … 3), palette.line (the track's own eight-bar melody as scale degrees of the key, -99 for a rest, varied a little from block to block; read it with .segment(8) and mask out the rests), palette.bellLine (the bells' answer to it, read the same way), palette.prog (0 … 4, which progression: 0 … 3 wander over sixteen bars, 4 is the track's own short loop of two to four chords, which a track in lo-fi mostly plays), palette.loop and palette.figure (the seeds of the track's own loop and figures; only to read).
+- palette.voicing (0 … 6), palette.keys (0 … 5, which instrument plays the chords; 5 is the moody square of regions.moody), palette.role (0 comping, 1 arpeggios, 2 held chords, 3 resting for the whole track), palette.octave (-1, 0, 1), palette.bells (0 scattered harp notes, 1 a Rhodes motif, 2 a nylon guitar motif, 3 none), palette.motif (0 … 3), palette.line (the track's own eight-bar melody as scale degrees of the key, -99 for a rest, varied a little from block to block; read it with .segment(8) and mask out the rests), palette.bellLine (the bells' answer to it, read the same way), palette.prog (0 … 4, which progression: 0 … 3 wander over sixteen bars, 4 is the track's own short loop of two to four chords, which a track in lo-fi mostly plays), palette.loop and palette.figure (the seeds of the track's own loop and figures; only to read).
 - palette.groove (0 laid-back, 1 boom-bap, 2 skipping, 3 broken): how the track moves. The ghost notes and hats have one figure per groove, chosen with palette.groove.pick([...]); a part you add with a rhythm of its own should follow it the same way.
 - The track's own figures, two bars long, written for its groove: palette.comp (the keys' comping on eighths: 0 rest, 1 a chord on the eighth, 2 a sixteenth after it), palette.arp (the keys' arpeggio on eighths, steps over the chord's root, -99 for a rest; read it with .segment(8) and mask out the rests), palette.ring (0 … 1, how long the keys ring out), palette.kick (0 or 1 on sixteenths, never on the snare's two and four), palette.low and palette.lowLate (the bass on eighths, and the notes a sixteenth after their eighth: a step over the root, -99 for a rest). Read them with .segment(8) or .segment(16), like the stone does; the bass and the comping lock to the kick. palette.swing (0 … 2, nearly straight to heavy) is the swing swung() gives every drum part; palette.kit (0 dusty, 1 deep, 2 tight) tunes the drums, like .speed(palette.kit.fmap(k => [1, 0.88, 1.08][k])).
 - The track's own drum kit (palette.drums, 0 … 7): play its samples with palette.kickSound, palette.snareSound and palette.hatSound (sample names like "gretsch:2", as a signal: s(palette.snareSound.struct("~ ~ x ~ ~ ~ x ~"))), at palette.kickLevel, snareLevel and hatLevel (multiply the gain by them; they even the kits out). The melody style keeps its 808.
-- The track's own sound, so it sounds like another record: palette.wow (0 … 1, how far the keys and bass wobble), palette.bright (0 … 1, how open the keys' filters are), palette.bassTone (0 a round sine, 1 a warm triangle, 2 a short pluck), palette.motifSound (0 the palette's bells, 1 a soft flute, 2 a muted pluck), palette.vinyl (0 … 1, how much crackle and dust). Keep what they change small; they only colour the genre.
+- The track's own sound, so it sounds like another record: palette.wow (0 … 1, how far the keys and bass wobble), palette.bright (0 … 1, how open the keys' filters are), palette.bassTone (0 a round sine, 1 a warm triangle, 2 a short pluck), palette.motifSound (0 the palette's bells, 1 a flute, 2 a muted guitar), palette.vinyl (0 … 1, how much crackle and dust). Keep what they change small; they only colour the genre.
 - palette.fifths (-1 … 2, the track's key against the pot's) and palette.tempo (about 0.94 … 1.06, against the region's): only to read, the key and the clock already follow them.
 - palette.day and palette.season: the phases (0 … 1) of two slow tides, a day of 20 hours and a season of 19 days, which lean which palettes come up. Use them sparingly, for very slow colour.
 In the stone each choice is a masked layer, like .mask(palette.keys.fmap(k => k === 2)). The point is that no single sound plays for more than a track or two: when you add a part that would play all the time, give it variants that follow the palette, or let it rest when the palette rests.
@@ -169,7 +169,7 @@ const Draft = z.object({
 export type Draft = z.infer<typeof Draft>;
 
 export type Brief = {
-  wall: number;
+  tides: Tides;
   form: Section[];
   cycle: number;
   code: string;
@@ -224,7 +224,7 @@ export function sonnetWrite(client: Anthropic, source: Pick<Source, "about" | "r
 
 export type Kitchen = {
   present: () => number;
-  wallNow: () => number;
+  tides: () => Tides;
   form: () => Section[];
   cycle: () => number;
   broth: () => Broth;
@@ -275,7 +275,7 @@ export class LiveCoder {
       this.nextAt += elapsed;
       this.emptySince ??= t;
       if (!this.kitchen.current().isStone && t - this.emptySince >= EMPTY_TO_STONE_MS) {
-        this.kitchen.serve(this.kitchen.stone, "back to the stone, the room emptied", homeKey(this.kitchen.wallNow()));
+        this.kitchen.serve(this.kitchen.stone, "back to the stone, the room emptied", homeKey(this.kitchen.tides()));
         this.served(t);
       }
       return;
@@ -302,7 +302,7 @@ export class LiveCoder {
     const k = this.kitchen;
     const current = k.current();
     const brief = writeBrief(k.now(), {
-      wall: k.wallNow(),
+      tides: k.tides(),
       form: k.form(),
       cycle: k.cycle(),
       code: current.code,
@@ -399,7 +399,7 @@ function writeBrief(t: number, b: Brief) {
     `On the genre map: ${share}% ${b.map.region}, ${100 - share}% ${b.map.towards}. Position: ${JSON.stringify(
       Object.fromEntries(Object.entries(b.map.position).map(([k, v]) => [k, r(v)])),
     )}. The tempo is ${bpm} BPM right now, a cycle lasts ${(1 / b.cps).toFixed(2)} s.`,
-    describeTrack(b.form, b.cycle, b.cps, b.wall),
+    describeTrack(b.form, b.cycle, b.cps, b.tides),
     `The broth now: ${JSON.stringify(broth)}, so broth.scale is "${scaleFor(trackKey(b.key, paletteAt(b.form, b.cycle).fifths), b.broth.valence, weightsAt(b.map.position), paletteAt(b.form, b.cycle).parent)}". The pot's key is ${b.key}, this track's ${trackKey(b.key, paletteAt(b.form, b.cycle).fifths)}.`,
     `In the pot: ${ingredients.length ? JSON.stringify(ingredients) : "nothing yet"}`,
     `The last recipe notes, oldest first:\n${b.recipe.map((n) => `- ${n}`).join("\n") || "- the stone"}`,
@@ -435,7 +435,7 @@ function nearbyFigures(b: Brief) {
   return `From the library, the figures of the regions near the pot, which the course plays as regions.<name>:\n\`\`\`js\n${figures.map(partSource).join("\n\n")}\n\`\`\``;
 }
 
-function describeTrack(form: Section[], cycle: number, cps: number, wall: number) {
+function describeTrack(form: Section[], cycle: number, cps: number, tides: Tides) {
   const now = sectionAt(form, cycle);
   const next = form.find((s) => s.cycle > cycle);
   const drop = form.find((s) => s.drop && s.cycle > cycle);
@@ -444,7 +444,7 @@ function describeTrack(form: Section[], cycle: number, cps: number, wall: number
   const parts = [
     `This track's palette: ${describePalette(paletteAt(form, cycle))}.`,
     track ? `The next track's palette: ${describePalette(track.palette)}; it starts at cycle ${track.cycle}${track.kind === "intro" ? ` with an intro after a ${track.seam}` : track.drop ? " on a drop" : ""}.` : "",
-    `The day tide is at ${tidesAt(wall).day.toFixed(2)}, the season at ${tidesAt(wall).season.toFixed(2)}; the style is ${describeStyle(styleWeights(tidesAt(wall)))}.`,
+    `The day tide is at ${tides.day.toFixed(2)}, the season at ${tides.season.toFixed(2)}; the style is ${describeStyle(styleWeights(tides))}.`,
     now ? `The track is in a ${now.kind}${now.drop ? " that started with a drop" : ""}${now.kind === "outro" ? ` into a ${now.seam}` : ""}, depth ${now.depth.toFixed(2)}.` : "The track has no plan right now.",
     blockInfo(form, cycle) ? `It is in block ${blockInfo(form, cycle)!.index + 1} of ${blockInfo(form, cycle)!.count} of the groove.` : "",
     next ? `Your course comes in at cycle ${next.cycle}, the start of the ${next.drop ? "next drop" : next.opens ? `next track's ${next.kind}` : next.kind}, in about ${minutes(next.cycle - cycle)} minutes.` : "",
