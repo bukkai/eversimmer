@@ -1,0 +1,11 @@
+[Unit]
+Description=Eversimmer FM: build, check and switch to the latest main
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# never root: what main brings is built and checked as the user that runs it
+User=eversimmer
+ExecStart=/opt/eversimmer/current/deploy/update.sh
+Nice=10

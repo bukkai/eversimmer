@@ -1,0 +1,23 @@
+{
+  "name": "eversimmer",
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n server,client -c yellow,cyan \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client",
+    "start": "npm start -w server",
+    "typecheck": "tsc --noEmit -p client && tsc --noEmit -p server",
+    "test": "npm test -w server",
+    "check": "npm run typecheck && npm test"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  }
+}

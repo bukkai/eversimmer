@@ -1,0 +1,10 @@
+# /etc/cloudflared/config.yml: the tunnel from Cloudflare to the pot server on this Pi.
+# Fill in the tunnel id `cloudflared tunnel create eversimmer` printed, and your hostname.
+tunnel: <tunnel-id>
+credentials-file: /etc/cloudflared/<tunnel-id>.json
+
+ingress:
+  # the page and the WebSocket both come from the pot server
+  - hostname: <radio.example.nl>
+    service: http://127.0.0.1:8787
+  - service: http_status:404

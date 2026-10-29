@@ -1,0 +1,37 @@
+[Unit]
+Description=Eversimmer FM pot server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=eversimmer
+WorkingDirectory=/opt/eversimmer/current/server
+# the Anthropic key and anything else of your own; see env.example
+EnvironmentFile=-/opt/eversimmer/shared/env
+# the pots are kept in shared/kept, so a restart or an update carries the music on where it was
+Environment=NODE_ENV=production HOST=127.0.0.1 PORT=8787 FEEDBACK_FILE=/opt/eversimmer/shared/feedback.jsonl KEEP_STATE=/opt/eversimmer/shared/kept
+ExecStart=/opt/eversimmer/current/node_modules/.bin/tsx src/index.ts
+Restart=on-failure
+RestartSec=5
+# it keeps the pots on SIGTERM and exits; this is plenty
+TimeoutStopSec=15
+
+# BirdNET-Go shares the Pi: it keeps priority, and the pot stays within its share of memory
+Nice=5
+MemoryHigh=768M
+MemoryMax=1G
+
+# the server only needs to read its own release and write its notes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+ReadWritePaths=/opt/eversimmer/shared
+
+[Install]
+WantedBy=multi-user.target
