@@ -25,7 +25,7 @@ import { loadDrums } from "../../shared/drums";
 import { macroSignals } from "../../shared/macros";
 import { DRUM_MACHINES_URL, levelOf } from "../../shared/sounds";
 import { STONE } from "../../shared/stone";
-import { foldValue, RESTING_BROTH, scaleFor, STILL_AIR, type Air, type Broth, type Course, type PotState } from "../../shared/types";
+import { foldValue, RESTING_BROTH, splitSound, scaleFor, STILL_AIR, type Air, type Broth, type Course, type PotState } from "../../shared/types";
 import { labelLayers, letThrough, type Layer } from "./layers";
 import { isSynced, serverNow } from "./net";
 import { SharedScheduler } from "./scheduler";
@@ -182,7 +182,7 @@ function soundsAhead() {
     if (next <= from || course.from >= to) return;
     try {
       for (const hap of course.pattern.queryArc(Math.max(from, course.from), Math.min(to, next))) {
-        const url = sampleUrl(foldValue(hap.value, noteToMidi));
+        const url = sampleUrl(splitSound(foldValue(hap.value, noteToMidi)));
         if (url) urls.add(url);
       }
     } catch {}
@@ -237,8 +237,8 @@ export async function startEngine(e: EngineEvents = {}, ready: Promise<unknown> 
       if (!letThrough(hap.value)) return;
       const fade = formAt(form, Number(hap.whole.begin)).fade;
       if (fade <= 0.001) return;
-      const value = foldValue(hap.value as { velocity?: number; s?: unknown; bank?: unknown }, noteToMidi);
-      const scale = fade * levelOf(String(value.s ?? "").split(":")[0], value.bank === undefined ? undefined : String(value.bank));
+      const value = splitSound(foldValue(hap.value as { velocity?: number; s?: unknown; bank?: unknown }, noteToMidi));
+      const scale = fade * levelOf(String(value.s ?? ""), value.bank === undefined ? undefined : String(value.bank));
       if (scale === 1 && value === hap.value) return trigger(hap, ...rest);
       trigger(hap.withValue(() => ({ ...value, velocity: (value.velocity ?? 1) * scale })), ...rest);
     },

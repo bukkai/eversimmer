@@ -3,7 +3,7 @@ import { nearestRegions } from "../../shared/map";
 import { $, remember, remembered } from "./dom";
 import { currentCycle, getAir, getCps, getMapPosition, readSignal, straining, tidesNow } from "./engine";
 import { serverNow } from "./net";
-import { currentSky, weatherNow } from "./sky";
+import { currentSky, weatherNow, withTheSky } from "./sky";
 
 type Weather = NonNullable<NonNullable<ReturnType<typeof currentSky>>["weather"]>;
 
@@ -17,6 +17,7 @@ let places: number | undefined;
 let since: number | undefined;
 const courses = new Map<string, Course>();
 let shownCourse = "";
+let scroll: { el: HTMLElement; from: number; seconds: number } | undefined;
 
 const round = (x: number) => Math.round(x).toString();
 const signed = (x: number, digits = 1) => `${x >= 0 ? "+" : "−"}${Math.abs(x).toFixed(digits)}`;
@@ -114,6 +115,7 @@ export function showInstruments() {
   };
   read();
   setInterval(() => straining() || showValues(), VALUES_MS);
+  withTheSky(scrollCode);
 }
 
 export function setListening(n: number) {
@@ -154,7 +156,13 @@ function followCode() {
   const lines = playing.code.trim().split("\n");
   const html = lines.map(lineHtml).join("\n");
   code.innerHTML = `<div class="scroll">${html}\n\n${html}\n\n</div>`;
-  if (!still) (code.firstElementChild as HTMLElement).style.animationDuration = `${lines.length * SECONDS_PER_LINE}s`;
+  if (!still) scroll = { el: code.firstElementChild as HTMLElement, from: performance.now(), seconds: lines.length * SECONDS_PER_LINE };
+}
+
+function scrollCode(t: number) {
+  if (!scroll) return;
+  const turn = ((t - scroll.from) / 1000 / scroll.seconds) % 1;
+  scroll.el.style.transform = `translateY(${(-50 * Math.max(0, turn)).toFixed(3)}%)`;
 }
 
 const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -169,8 +177,15 @@ function lineHtml(line: string) {
 
 function showValues() {
   const cycle = currentCycle();
+  const read = new Map<string, string>();
   for (const el of $("listen-code").querySelectorAll<HTMLElement>("i[data-g]")) {
-    const value = readSignal(el.dataset.g!, el.dataset.n!, cycle);
-    el.textContent = value === undefined ? "" : typeof value === "number" ? `‹${value.toFixed(2)}›` : `‹${value}›`;
+    const key = `${el.dataset.g}.${el.dataset.n}`;
+    let said = read.get(key);
+    if (said === undefined) {
+      const value = readSignal(el.dataset.g!, el.dataset.n!, cycle);
+      said = value === undefined ? "" : typeof value === "number" ? `‹${value.toFixed(2)}›` : `‹${value}›`;
+      read.set(key, said);
+    }
+    if (el.textContent !== said) el.textContent = said;
   }
 }

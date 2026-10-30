@@ -20,6 +20,9 @@ let nextFlash = 0;
 const FRAME_MS = 1000 / 30;
 const STRAINED_FRAME_MS = 100;
 let drawnAt = -Infinity;
+const alongside: ((t: number) => void)[] = [];
+
+export const withTheSky = (fn: (t: number) => void) => alongside.push(fn);
 
 export function showSky(page: Sky | undefined) {
   canvas = $<HTMLCanvasElement>("sky");
@@ -28,6 +31,7 @@ export function showSky(page: Sky | undefined) {
     if (t - drawnAt >= (straining() ? STRAINED_FRAME_MS : FRAME_MS) - 2) {
       drawnAt = t;
       draw(t);
+      for (const fn of alongside) fn(t);
     }
     if (!still) requestAnimationFrame(frame);
   };
@@ -85,7 +89,7 @@ const isDrizzle = (code: number) => code >= 51 && code <= 57;
 
 function draw(t: number) {
   if (!canvas) return;
-  const dpr = Math.min(2, devicePixelRatio || 1);
+  const dpr = Math.min(1, devicePixelRatio || 1);
   const w = canvas.clientWidth;
   const h = canvas.clientHeight;
   if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {

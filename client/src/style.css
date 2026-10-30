@@ -297,11 +297,10 @@ button.small { padding: 0.1em 0.8em; font-size: 0.95em; }
   -webkit-mask-image: radial-gradient(ellipse 42% 46% at 50% 46%, transparent 35%, #000 100%);
   mask-image: radial-gradient(ellipse 42% 46% at 50% 46%, transparent 35%, #000 100%);
 }
-#listen .code .scroll { animation: scroll-code linear infinite; will-change: transform; }
+#listen .code .scroll { will-change: transform; }
 #listen .code b { font-weight: inherit; color: var(--listen-code-live); }
 #listen .code i { font-style: normal; color: var(--listen-code-live); }
 #listen .code .cm { opacity: 0.6; }
-@keyframes scroll-code { to { transform: translateY(-50%); } }
 
 #listen .inputs {
   padding: 10px 12px;
@@ -372,7 +371,7 @@ button.small { padding: 0.1em 0.8em; font-size: 0.95em; }
   #listen .inputs { font-size: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .stats::before, #listen .code .scroll { animation: none; }
+  .stats::before { animation: none; }
 }
 
 body:has(#listen:not([hidden])) { background: transparent; }

@@ -87,6 +87,15 @@ export function foldValue<V>(value: V, toMidi: (note: string) => number): V {
   return folded === midi ? value : { ...value, note: folded };
 }
 
+export function splitSound<V>(value: V): V {
+  const s = (value as { s?: unknown; n?: unknown } | null)?.s;
+  if (typeof s !== "string") return value;
+  const at = s.indexOf(":");
+  if (at < 0) return value;
+  const n = (value as { n?: unknown }).n ?? Number(s.slice(at + 1));
+  return { ...value, s: s.slice(0, at), n };
+}
+
 export type Course = {
   id: string;
   code: string;
