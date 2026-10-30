@@ -15,7 +15,8 @@
     "start": "npm start -w server",
     "typecheck": "tsc --noEmit -p client && tsc --noEmit -p server",
     "test": "npm test -w server",
-    "check": "npm run typecheck && npm test"
+    "check": "npm run typecheck && npm test",
+    "stats": "npm run stats -w server --"
   },
   "devDependencies": {
     "concurrently": "^10.0.6"

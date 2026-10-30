@@ -21,6 +21,8 @@ const LIVE_CODER =
   process.env.LIVE_CODER === "on" ||
   (process.env.LIVE_CODER !== "off" && process.env.npm_lifecycle_event !== "dev");
 const KEEP_STATE = process.env.KEEP_STATE || undefined;
+const STATS = process.env.STATS || undefined;
+const STATS_KEY = process.env.STATS_KEY || undefined;
 const wanted = process.env.POTS?.split(",").map((p) => p.trim());
 const called = (id: string) => POTS.filter((p) => p.id === id || p.id.startsWith(`${id}-`));
 const pots = wanted ? wanted.flatMap((id) => (called(id).length ? called(id) : fail(`there is no pot called ${id}`))) : POTS;
@@ -46,6 +48,8 @@ const server = potServer({
   devControls: DEV_CONTROLS,
   liveCoder: LIVE_CODER,
   keep: KEEP_STATE,
+  stats: STATS,
+  statsKey: STATS_KEY,
 });
 
 for (const signal of ["SIGINT", "SIGTERM"] as const)

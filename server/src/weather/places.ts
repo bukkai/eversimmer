@@ -10,6 +10,9 @@ export const PLACES: Place[] = [
   { id: "wellington", name: "Wellington", latitude: -41.29, longitude: 174.78, timeZone: "Pacific/Auckland", tideLag: 147 },
   { id: "sapporo", name: "Sapporo", latitude: 43.06, longitude: 141.35, timeZone: "Asia/Tokyo" },
   { id: "marrakesh", name: "Marrakesh", latitude: 31.63, longitude: -7.99, timeZone: "Africa/Casablanca" },
+  { id: "dublin", name: "Dublin", latitude: 53.35, longitude: -6.26, timeZone: "Europe/Dublin", tideLag: 332 },
+  { id: "rio-de-janeiro", name: "Rio de Janeiro", latitude: -22.91, longitude: -43.17, timeZone: "America/Sao_Paulo", tideLag: 161 },
+  { id: "seoul", name: "Seoul", latitude: 37.57, longitude: 126.98, timeZone: "Asia/Seoul" },
 ];
 
 export function tideLag(place: Place) {

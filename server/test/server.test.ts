@@ -69,6 +69,7 @@ const server = potServer({
   client: undefined,
   devControls: false,
   liveCoder: false,
+  statsKey: "secret",
 });
 let base = "";
 before(() => new Promise<void>((resolve) => server.http.listen(0, "127.0.0.1", () => {
@@ -116,6 +117,14 @@ test("each pot simmers its own stone, or the stone", async () => {
     assert.equal(state.state.recipe[0].code, stone);
     ws.close();
   }
+});
+
+test("the listening statistics only open with their key", async () => {
+  assert.equal((await fetch(`http://${base}/stats`)).status, 404);
+  assert.equal((await fetch(`http://${base}/stats?key=wrong`)).status, 404);
+  const res = await fetch(`http://${base}/stats?key=secret`);
+  assert.equal(res.status, 200);
+  assert.match(await res.text(), /places/);
 });
 
 test("an address without a pot is refused", async () => {

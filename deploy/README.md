@@ -11,6 +11,7 @@ Elke tien minuten kijkt de Pi of er iets nieuws op `main` staat. Is dat zo, dan 
   current -> releases/… wat er speelt
   shared/env            je Anthropic-key en eigen instellingen
   shared/kept/          elke pot, bewaard voor een herstart
+  shared/stats/         luistercijfers per dag, alleen totalen
   shared/failed         de laatste versie die zijn checks niet haalde
 ```
 
@@ -46,7 +47,7 @@ Voor de launch speelt alleen de weer-pot, op de voorpagina, zonder live coder. `
 
 ```
 POTS=meander
-WEATHER_PLACES=bergen,singapore,san-francisco,wellington,sapporo,marrakesh
+WEATHER_PLACES=wellington,dublin,san-francisco,rio-de-janeiro,seoul,marrakesh
 LIVE_CODER=off
 ```
 

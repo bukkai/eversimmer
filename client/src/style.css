@@ -44,6 +44,7 @@ button:disabled { opacity: 0.5; cursor: wait; }
 footer { text-align: center; padding: 16px; }
 footer a { color: var(--muted); }
 footer a:hover { color: var(--accent); }
+footer .stats { margin-top: -2em; margin-bottom: .3em }
 
 #door {
   min-height: calc(100vh - 56px);
@@ -208,8 +209,16 @@ button.small { padding: 0.1em 0.8em; font-size: 0.95em; }
   position: relative;
   min-height: calc(100vh - 56px);
   display: grid;
-  place-items: center;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: 1fr auto 1fr;
+  grid-template-areas:
+    "where stats"
+    "over over"
+    "about inputs";
+  gap: 1rem 24px;
+  padding: 28px 32px 8px;
   color: #f4f1ea;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.18);
   --listen-soft: rgba(244, 241, 234, 0.72);
   --listen-faint: rgba(244, 241, 234, 0.5);
   --listen-code: rgba(244, 241, 234, 0.045);
@@ -223,17 +232,12 @@ button.small { padding: 0.1em 0.8em; font-size: 0.95em; }
   --listen-code-live: rgba(31, 38, 48, 0.14);
 }
 #sky { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; }
-#listen .over {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  justify-items: center;
-  padding: 2rem 16px;
-  text-align: center;
-  max-width: 34rem;
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.18);
-}
-#listen .station, #listen .when, #listen .stats {
+#listen > :not(#sky, .code) { position: relative; z-index: 1; }
+#listen .where { grid-area: where; align-self: start; display: block; margin: 0; }
+#listen .over { grid-area: over; justify-self: center; display: grid; justify-items: center; max-width: 34rem; text-align: center; }
+#listen .about { grid-area: about; align-self: end; justify-self: start; }
+#listen .inputs { grid-area: inputs; align-self: end; justify-self: end; }
+#listen .station, #listen .when {
   margin: 0;
   font: 11px/1.6 ui-monospace, Menlo, monospace;
   letter-spacing: 0.22em;
@@ -241,21 +245,15 @@ button.small { padding: 0.1em 0.8em; font-size: 0.95em; }
   color: var(--listen-soft);
   font-variant-numeric: tabular-nums;
 }
-#listen h1 { font-size: clamp(2.8rem, 11vw, 5rem); line-height: 1; margin: 1rem 0 0.8rem; }
-#listen .places {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.2em 1.2em;
-  margin: -0.2rem 0 0.6rem;
-  font: 10px/1.6 ui-monospace, Menlo, monospace;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-}
-#listen .places a { color: var(--listen-soft); text-decoration: none; opacity: 0.7; }
+#listen h1 { font-size: clamp(2.8rem, 11vw, 5rem); line-height: 1; margin: 0 0 0.9rem; }
+#listen .places { display: grid; justify-items: start; gap: 0.1rem; margin-top: 1rem; font-size: 0.95rem; line-height: 1.5; }
+#listen .places a { display: flex; align-items: center; gap: 0.6em; margin-left: calc(-0.9em - 0.3rem); color: var(--listen-soft); text-decoration: none; opacity: 0.75; }
+#listen .places a::before { content: ""; width: 0.3rem; height: 0.3rem; border-radius: 50%; background: currentColor; opacity: 0; }
 #listen .places a:hover { opacity: 1; }
+#listen .places a:focus-visible { outline: 1px solid currentColor; outline-offset: 3px; border-radius: 2px; }
 #listen .places a[aria-current] { opacity: 1; color: inherit; }
-#listen .conditions { margin: 1.4rem 0 2.2rem; font-size: 1.3rem; line-height: 1.3; font-style: italic; }
+#listen .places a[aria-current]::before { opacity: 1; }
+#listen .conditions { margin: 1.2rem 0 2.2rem; font-size: 1.3rem; line-height: 1.3; font-style: italic; }
 #listen button {
   font-size: 1rem;
   padding: 0.8em 2.4em;
@@ -267,12 +265,11 @@ button.small { padding: 0.1em 0.8em; font-size: 0.95em; }
 }
 #listen button:hover { background: rgba(255, 255, 255, 0.28); }
 #listen button.on { background: transparent; }
-#listen .note, #listen .about { max-width: 24rem; font-size: 0.95rem; line-height: 1.55; color: var(--listen-soft); }
-#listen .note { margin: 0.8rem 0 0; min-height: 1.55em; font-style: italic; }
-#listen .about { margin: 1.4rem 0 0; }
-#listen .stats { margin: 2rem 0 0; min-height: 1.6em; color: var(--listen-faint); }
+#listen .note, #listen .about { font-size: 0.95rem; line-height: 1.55; color: var(--listen-soft); }
+#listen .note { max-width: 24rem; margin: 0.8rem 0 0; min-height: 1.55em; font-style: italic; }
+#listen .about { max-width: 19rem; margin: 0; font-size: 0.875rem; }
 #listen .mono, #listen .inputs, #listen .code { font-family: ui-monospace, Menlo, monospace; }
-#listen .stats:not(:empty)::before {
+.stats:not(:empty)::before {
   content: "";
   display: inline-block;
   width: 0.45rem;
@@ -307,10 +304,6 @@ button.small { padding: 0.1em 0.8em; font-size: 0.95em; }
 @keyframes scroll-code { to { transform: translateY(-50%); } }
 
 #listen .inputs {
-  position: fixed;
-  right: 20px;
-  bottom: 36px;
-  z-index: 1;
   padding: 10px 12px;
   border-radius: 6px;
   -webkit-backdrop-filter: blur(4px);
@@ -323,12 +316,14 @@ button.small { padding: 0.1em 0.8em; font-size: 0.95em; }
   line-height: 1.5;
   color: var(--listen-faint);
   font-variant-numeric: tabular-nums;
+  margin-top: -2em;
 }
 #listen .inputs .head {
   grid-column: 1 / -1;
-  justify-self: start;
-  margin: 0 0 0.4em;
-  padding: 0;
+  justify-self: stretch;
+  margin: -10px -12px 0;
+  padding: 10px 12px 0.6em;
+  text-align: left;
   border: 0;
   border-radius: 0;
   background: none;
@@ -343,8 +338,8 @@ button.small { padding: 0.1em 0.8em; font-size: 0.95em; }
 }
 #listen .inputs .head::after { content: "  −"; letter-spacing: 0; }
 #listen .inputs .head:hover { color: var(--listen-soft); }
-#listen .inputs.folded { -webkit-backdrop-filter: none; backdrop-filter: none; }
-#listen .inputs.folded .head { margin: 0; }
+#listen .inputs.folded { -webkit-backdrop-filter: none; backdrop-filter: none; cursor: pointer; }
+#listen .inputs.folded .head { padding-bottom: 10px; }
 #listen .inputs.folded .head::after { content: "  +"; }
 #listen .inputs.folded > :not(.head) { display: none; }
 #listen .inputs .row { display: contents; }
@@ -354,9 +349,22 @@ button.small { padding: 0.1em 0.8em; font-size: 0.95em; }
 #listen .inputs .bar { align-self: center; height: 2px; background: linear-gradient(to right, currentColor calc(var(--v, 0) * 100%), transparent 0); box-shadow: 0 0 0 0.5px var(--listen-code-live); }
 #listen .inputs hr { grid-column: 1 / -1; width: 100%; margin: 0.4em 0; border: 0; border-top: 1px solid var(--listen-faint); opacity: 0.35; }
 #listen .inputs a { color: inherit; }
-@media (max-width: 1240px), (max-height: 700px) {
-  #listen { grid-template-rows: 1fr auto; }
-  #listen .inputs { position: static; margin: 0 16px 1.5rem; justify-self: center; grid-template-columns: auto auto auto auto 2rem; column-gap: 0.6em; }
+@media (max-width: 900px) {
+  #listen {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr auto auto auto;
+    grid-template-areas: "where" "over" "about" "stats" "inputs";
+    gap: 1.5rem;
+    padding: 20px 16px 8px;
+    text-align: center;
+  }
+  #listen .where, #listen .about, #listen .inputs { justify-self: center; text-align: center; }
+  #listen .over { align-self: center; padding: 1rem 0; }
+  #listen .places { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.1rem 1.1rem; margin-top: 0.7rem; }
+  #listen .places a { margin-left: 0; }
+  #listen .places a::before { display: none; }
+  #listen .places a[aria-current] { text-decoration: underline; text-underline-offset: 0.3em; text-decoration-thickness: 1px; }
+  #listen .inputs { text-align: left; grid-template-columns: auto auto auto auto 2rem; column-gap: 0.6em; }
 }
 @media (max-width: 760px) {
   #listen, #listen.light-sky { --listen-code: rgba(127, 127, 127, 0.06); }
@@ -364,7 +372,7 @@ button.small { padding: 0.1em 0.8em; font-size: 0.95em; }
   #listen .inputs { font-size: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  #listen .stats::before, #listen .code .scroll { animation: none; }
+  .stats::before, #listen .code .scroll { animation: none; }
 }
 
 body:has(#listen:not([hidden])) { background: transparent; }

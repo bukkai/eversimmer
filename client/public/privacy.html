@@ -1,37 +1,101 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Eversimmer FM · Privacy</title>
-    <style>
-      :root { color-scheme: light dark; --ink: #2b241c; --soft: #6b6155; --paper: #f7f3ec; --line: #e2d9ca; }
-      @media (prefers-color-scheme: dark) { :root { --ink: #ece6dc; --soft: #a99f92; --paper: #1b1915; --line: #3a352d; } }
-      body { margin: 0; background: var(--paper); color: var(--ink); font: 1rem/1.55 Georgia, "Iowan Old Style", serif; }
-      main { max-width: 40rem; margin: 0 auto; padding: 2.5rem 16px 4rem; }
-      h1 { font-size: 2rem; margin: 0 0 0.3rem; }
-      h2 { font-size: 1.15rem; margin: 2rem 0 0.4rem; border-top: 1px solid var(--line); padding-top: 1.2rem; }
-      p, li { margin: 0.35rem 0; }
-      ul { padding-left: 1.2rem; }
-      .soft { color: var(--soft); }
-      a { color: inherit; }
-    </style>
-  </head>
-  <body>
-    <main>
-      <h1>Privacy</h1>
-      <p class="soft">Short, because there is little to say: you listen, and nobody keeps track of you.</p>
 
-      <h2>Nothing is tracked</h2>
-      <ul>
-        <li>No analytics, no ads, no accounts and no cookies.</li>
-        <li>Your browser remembers one or two conveniences of its own, like whether the recipe card was open. They stay on your device.</li>
-        <li>While you listen, the server knows your connection is there. It counts how many places are listening, which the front page shows, and forgets you when you leave. Nothing about you is written down.</li>
-        <li>The page fetches its sounds from GitHub, and the site reaches you through Cloudflare; both see the connection, as they do for any site.</li>
-      </ul>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eversimmer FM · Privacy</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --ink: #2b241c;
+      --soft: #6b6155;
+      --paper: #f7f3ec;
+      --line: #e2d9ca;
+    }
 
-      <h2>No AI makes the music</h2>
-      <p>Meander's music is written in advance as code, and played in your browser by <a href="https://strudel.cc">Strudel</a>. The weather turns it through fixed rules you can read in the <a href="https://github.com/bukkai/eversimmer">source</a>. Eversimmer has a live coder, a language model that can write new parts, but on Meander it is switched off.</p>
-    </main>
-  </body>
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #ece6dc;
+        --soft: #a99f92;
+        --paper: #1b1915;
+        --line: #3a352d;
+      }
+    }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 1rem/1.55 Georgia, "Iowan Old Style", serif;
+    }
+
+    main {
+      max-width: 40rem;
+      margin: 0 auto;
+      padding: 2.5rem 16px 4rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin: 0 0 0.3rem;
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      margin: 2rem 0 0.4rem;
+      border-top: 1px solid var(--line);
+      padding-top: 1.2rem;
+    }
+
+    p,
+    li {
+      margin: 0.35rem 0;
+    }
+
+    ul {
+      padding-left: 1.2rem;
+    }
+
+    .soft {
+      color: var(--soft);
+    }
+
+    a {
+      color: inherit;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>Privacy</h1>
+    <p class="soft">Short, because there is little to say: you listen, and nobody keeps track of you.</p>
+
+    <h2>Nothing about you is kept</h2>
+    <ul>
+      <li>No ads, no accounts, no cookies and no analytics service.</li>
+      <li>Your browser remembers one or two conveniences of its own, like whether the recipe card was open. They stay on
+        your device.</li>
+      <li>While you listen, the server knows your connection is there. It counts how many places are listening, which
+        the front page shows, and forgets you when you leave.</li>
+      <li>It also keeps a few totals for each day, so we know whether anyone listens: how many places listened and for
+        how long, the most at once, which place on the page they moved to, whether on a phone or a computer, the
+        browser's first language, and the name of the site a visit came from, if any. These are tallies only, never a
+        record per listener.</li>
+      <li>To count each place once a day, the server mixes your address with a random value that is thrown away at the
+        end of the day. Your address itself is never written down, and nobody can tell whether you came back the next
+        day.</li>
+      <li>The page fetches its sounds from GitHub, and the site reaches you through Cloudflare; both see the connection,
+        as they do for any site.</li>
+    </ul>
+
+    <h2>No AI makes the music</h2>
+    <p>Meander's music is written in advance as code, and played in your browser by <a
+        href="https://strudel.cc">Strudel</a>. The weather turns it through fixed rules you can read in the <a
+        href="https://github.com/bukkai/eversimmer">source</a>. Parts of Eversimmer include a live coder, a language
+      model that can write new parts, but on Meander it is switched off so no calls to any LLM are made.</p>
+  </main>
+</body>
+
 </html>

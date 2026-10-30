@@ -4,7 +4,16 @@ import { $ } from "./dom";
 let id = location.pathname.split("/")[1] || undefined;
 let name = id ? id[0].toUpperCase() + id.slice(1) : "Potluck";
 
-export const wsPath = () => (id ? `${WS_PATH}/${encodeURIComponent(id)}` : WS_PATH);
+const referrer = (() => {
+  try {
+    const host = new URL(document.referrer).hostname;
+    return host && host !== location.hostname ? `?from=${encodeURIComponent(host)}` : "";
+  } catch {
+    return "";
+  }
+})();
+
+export const wsPath = () => (id ? `${WS_PATH}/${encodeURIComponent(id)}` : WS_PATH) + referrer;
 export const doorPath = () => (id ? `${DOOR_PATH}/${encodeURIComponent(id)}` : DOOR_PATH);
 export const potId = () => id;
 

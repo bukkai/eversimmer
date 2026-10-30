@@ -54,10 +54,18 @@ export function showInstruments() {
   const fold = (folded: boolean) => {
     panel.classList.toggle("folded", folded);
     head.setAttribute("aria-expanded", String(!folded));
-    remember("inputs", folded ? "folded" : "open");
   };
-  fold(remembered("inputs") === "folded");
-  head.addEventListener("click", () => fold(!panel.classList.contains("folded")));
+  fold(remembered("inputs-shown") !== "open");
+  const toggle = () => {
+    const folded = !panel.classList.contains("folded");
+    fold(folded);
+    remember("inputs-shown", folded ? "folded" : "open");
+  };
+  head.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggle();
+  });
+  panel.addEventListener("click", () => panel.classList.contains("folded") && toggle());
   const rows = INPUTS.map(([name, , [, pulls]]) => row(name, pulls));
   const tide = row("tide", "palette");
   const moon = row("moon", "style");

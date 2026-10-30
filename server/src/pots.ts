@@ -6,7 +6,7 @@ import { forecast } from "./weather/open-meteo";
 import { placeCalled } from "./weather/places";
 import { replayed } from "./weather/replay";
 
-const places = (process.env.WEATHER_PLACES ?? "bergen,singapore,san-francisco,wellington,sapporo,marrakesh")
+const places = (process.env.WEATHER_PLACES ?? "wellington,dublin,san-francisco,rio-de-janeiro,seoul,marrakesh")
   .split(",")
   .map((id) => placeCalled(id.trim()));
 const model = process.env.WEATHER_MODEL;
