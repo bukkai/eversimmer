@@ -1,5 +1,5 @@
 import { REGIONS } from "./map";
-import { borrowLate, cross, crossedKnobs, mutationFor, RULES, settingOf, sourceOf, type ChoiceKnob } from "./presets";
+import { borrowLate, cross, crossedKnobs, mutationFor, RULES, settingOf, sourceOf, type ChoiceKnob, type Setting } from "./presets";
 import { seeded, weighted } from "./numbers";
 import { describeLoop, describePsy, DRONE_WORDS, DRONES, figuresAt, loopAt, psyAt } from "./song";
 
@@ -8,7 +8,25 @@ export const SEASON_MS = 19 * 24 * 60 * 60_000;
 
 export type Tides = { day: number; season: number };
 
-export type Lean = { bright?: number; tempo?: number; swing?: number };
+export type Lean = { bright?: number; tempo?: number; swing?: number; favour?: Favour };
+
+export type Favour = { keys?: Setting<"keys">[]; drums?: Setting<"drums">[]; motifSound?: Setting<"motifSound">[] };
+const FAVOURED = 3;
+const favoured = (lean: Lean, knob: keyof Favour, i: number) =>
+  (lean.favour?.[knob] as string[] | undefined)?.some((name) => settingOf(knob, name as never) === i) ? FAVOURED : 1;
+
+export type Accent = { fifths: number; lean?: Lean };
+
+export function accented(lean: Lean = {}, accent?: Accent): Lean {
+  if (!accent?.lean) return lean;
+  const sum = (a?: number, b?: number) => (a === undefined && b === undefined ? undefined : Math.max(-1, Math.min(1, (a ?? 0) + (b ?? 0))));
+  return {
+    bright: sum(lean.bright, accent.lean.bright),
+    tempo: sum(lean.tempo, accent.lean.tempo),
+    swing: sum(lean.swing, accent.lean.swing),
+    favour: accent.lean.favour ?? lean.favour,
+  };
+}
 
 export const tidesAt = (ms: number): Tides => ({ day: (ms / DAY_TIDE_MS) % 1, season: (ms / SEASON_MS) % 1 });
 
@@ -65,17 +83,19 @@ export const SWINGS = [0.08, 1 / 6, 0.28];
 export const SWING_WORDS = ["nearly straight", "a light swing", "a heavy swing"];
 export const KITS = ["dusty", "deep", "tight"];
 const DUSTY = { clap: "cp:0", open: "808oh" };
+const HEARD = [0.56, 0.2, 0.35];
+const heard = (levels: number[]) => levels.map((level, i) => Math.round(level * HEARD[i] * 1000) / 1000);
 const TR909 = (x: string) => `RolandTR909_${x}`;
 const TR606 = (x: string) => `RolandTR606_${x}`;
 export const DRUMKITS = [
-  { name: "a dusty 909", kick: "bd:3", snare: "sd:1", hat: "hh:0", ...DUSTY, levels: [1, 1, 1] },
-  { name: "a short 909", kick: "bd:1", snare: "sn:0", hat: "hh27:0", ...DUSTY, levels: [1, 1, 1.15] },
-  { name: "brushes", kick: "gretsch:13", snare: "gretsch:2", hat: "gretsch:4", ...DUSTY, levels: [2.3, 1.85, 0.6] },
-  { name: "a slack snare", kick: "gretsch:13", snare: "gretsch:23", hat: "hh:0", ...DUSTY, levels: [2.3, 1.85, 1] },
-  { name: "a jazz kit", kick: "jazz:0", snare: "jazz:7", hat: "jazz:3", ...DUSTY, levels: [0.8, 1.33, 0.2] },
-  { name: "a crisp kit", kick: "feel:0", snare: "feel:3", hat: "feel:1", ...DUSTY, levels: [1.17, 1.25, 0.11] },
-  { name: "a Linn", kick: "kicklinn:0", snare: "sn:14", hat: "linnhats:0", ...DUSTY, levels: [1.33, 0.95, 0.22] },
-  { name: "a rimshot", kick: "bd:4", snare: "rm:0", hat: "hh:0", ...DUSTY, levels: [1, 0.86, 1] },
+  { name: "a dusty 909", kick: "bd:3", snare: "sd:1", hat: "hh:0", ...DUSTY, levels: heard([1, 1, 1]) },
+  { name: "a short 909", kick: "bd:1", snare: "sn:0", hat: "hh27:0", ...DUSTY, levels: heard([1, 1, 1.15]) },
+  { name: "brushes", kick: "gretsch:13", snare: "gretsch:2", hat: "gretsch:4", ...DUSTY, levels: heard([2.3, 1.85, 0.6]) },
+  { name: "a slack snare", kick: "gretsch:13", snare: "gretsch:23", hat: "hh:0", ...DUSTY, levels: heard([2.3, 1.85, 1]) },
+  { name: "a jazz kit", kick: "jazz:0", snare: "jazz:7", hat: "jazz:3", ...DUSTY, levels: heard([0.8, 1.33, 0.2]) },
+  { name: "a crisp kit", kick: "feel:0", snare: "feel:3", hat: "feel:1", ...DUSTY, levels: heard([1.17, 1.25, 0.11]) },
+  { name: "a Linn", kick: "kicklinn:0", snare: "sn:14", hat: "linnhats:0", ...DUSTY, levels: heard([1.33, 0.95, 0.22]) },
+  { name: "a rimshot", kick: "bd:4", snare: "rm:0", hat: "hh:0", ...DUSTY, levels: heard([1, 0.86, 1]) },
   { name: "the 909 machine", kick: TR909("bd"), snare: TR909("sd"), hat: TR909("hh"), clap: TR909("cp"), open: TR909("oh"), levels: [1, 1, 1] },
   { name: "the 606 machine", kick: TR606("bd"), snare: TR606("sd"), hat: TR606("hh"), clap: DUSTY.clap, open: TR606("oh"), levels: [1, 1, 1] },
 ];
@@ -243,7 +263,7 @@ export function choosePalette(
   const still = cosine(day, 0);
 
   const keys = weighted(
-    KEY_SOUNDS.map((_, i) => (0.3 + cosine(day, i / 5)) * knobs.keys[i] * again("keys", i, 0.25)),
+    KEY_SOUNDS.map((_, i) => (0.3 + cosine(day, i / 5)) * knobs.keys[i] * favoured(lean, "keys", i) * again("keys", i, 0.25)),
     random,
   );
   const roles = [1, 0.3 + 0.7 * busy, 0.3 + 0.7 * still, (0.12 + 0.2 * still) * again("role", 3, 0.1), 1].map(
@@ -277,11 +297,11 @@ export function choosePalette(
   const groove = weighted(GROOVES.map((_, i) => again("groove", i, 0.2)), random);
   const swing = weighted(knobs.swing.map((w, i) => w * Math.max(0.2, 1 + 0.6 * (i - 1) * (lean.swing ?? 0)) * again("swing", i, 0.5)), random);
   const kit = weighted(KITS.map((_, i) => again("kit", i, 0.4)), random);
-  const drums = weighted(DRUMKITS.map((_, i) => knobs.drums[i] * again("drums", i, 0.15)), random);
+  const drums = weighted(DRUMKITS.map((_, i) => knobs.drums[i] * favoured(lean, "drums", i) * again("drums", i, 0.15)), random);
   const wow = random();
   const brightness = random();
   const bassTone = weighted([1.2, 0.8, 0.8].map((w, i) => w * again("bassTone", i, 0.5)), random);
-  const motifSound = weighted([1.6, 0.8, 0.8].map((w, i) => w * knobs.motifSound[i] * again("motifSound", i, 0.5)), random);
+  const motifSound = weighted([1.6, 0.8, 0.8].map((w, i) => w * knobs.motifSound[i] * favoured(lean, "motifSound", i) * again("motifSound", i, 0.5)), random);
   const vinyl = random();
   const phrase = Math.floor(random() * 1e6);
   const loop = Math.floor(random() * 1e6);
@@ -355,7 +375,8 @@ export const describeCrossing = (p: Palette) =>
   (p.mutated ? `; this block moves ${KNOB_WORDS[p.mutated]}` : "");
 
 const FIFTHS = ["Bb", "F", "C", "G", "D", "A", "E"];
-export const homeKey = ({ season }: Tides) => FIFTHS[Math.floor(season * FIFTHS.length)];
+export const homeKey = ({ season }: Tides, fifths = 0) =>
+  FIFTHS[(((Math.floor(season * FIFTHS.length) + fifths) % FIFTHS.length) + FIFTHS.length) % FIFTHS.length];
 
 const FIFTHS_WORDS = ["a fifth down", "in the pot's key", "a fifth up", "two fifths up"];
 

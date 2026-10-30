@@ -200,8 +200,8 @@ export const DRONE_WORDS = [
 ];
 const ROLLS = ["a galloping bass", "a bass on the offbeats", "a syncopated bass"];
 const VOICES = ["an acid line", "a gliding lead", "an acid line and a gliding lead"];
-const PSY_KICKS = [{ s: "bd:3", level: 1 }, { s: "kicklinn:0", level: 1.33 }, { s: "gretsch:13", level: 2.3 }, { s: "jazz:0", level: 0.8 }];
-const PSY_THREES = [{ s: "cp:0", level: 1, word: "a clap" }, { s: "rm:0", level: 0.86, word: "a rim" }, { s: "sd:1", level: 1, word: "a snare" }];
+const PSY_KICKS = [{ s: "bd:3", level: 0.56 }, { s: "kicklinn:0", level: 0.745 }, { s: "gretsch:13", level: 1.288 }, { s: "jazz:0", level: 0.448 }];
+const PSY_THREES = [{ s: "cp:0", level: 0.2, word: "a clap" }, { s: "rm:0", level: 0.172, word: "a rim" }, { s: "sd:1", level: 0.2, word: "a snare" }];
 const PSY_HANDS = ["tabla", "tabla2", "perc", "east"];
 export const TWISTS = ["no turn", "the root a step up", "the root down to VI", "the beat drops out", "the bass drops out", "the bass rolls another way", "the lead an octave up"];
 

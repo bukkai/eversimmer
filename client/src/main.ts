@@ -27,6 +27,7 @@ import {
   setTides,
   setAir,
   setVolume,
+  softenDrums,
   startEngine,
   warmUp,
 } from "./engine";
@@ -78,6 +79,7 @@ async function knock(): Promise<Door | undefined> {
 
 async function openDoor() {
   const door = await knock();
+  if (door?.sky) softenDrums();
   if (!door?.sky || door.devControls) return;
   namePot(door.name);
   $("door").hidden = true;

@@ -3,6 +3,9 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
+import { seeded } from "../../shared/numbers";
+import { accented, choosePalette, DRUMKITS, homeKey } from "../../shared/palette";
+import { settingOf } from "../../shared/presets";
 import { RESTING_BROTH } from "../../shared/types";
 import { Pantry } from "../src/pantry";
 import type { SourceContext } from "../src/source";
@@ -10,7 +13,7 @@ import { between, Weather } from "../src/weather";
 import { haze, ingredients, lean, PULL, type Reading } from "../src/weather/mapping";
 import { moonAt, tideAt } from "../src/weather/moon";
 import { parseHours, type Hour } from "../src/weather/open-meteo";
-import { placeCalled, tideLag } from "../src/weather/places";
+import { PLACES, placeCalled, tideLag } from "../src/weather/places";
 import { replayed } from "../src/weather/replay";
 
 const HOUR = 60 * 60_000;
@@ -293,4 +296,28 @@ test("the weather pot's air carries the fog, and lets go of it with the weather"
   assert.equal(weather.air(at(START)).fog, 1);
   assert.ok(weather.air(at(START + 10 * HOUR)).fog < 0.01);
   weather.close();
+});
+
+test("Meander's six are never in the same key, and each favours its own drums", () => {
+  const six = ["wellington", "dublin", "san-francisco", "rio-de-janeiro", "seoul", "marrakesh"].map(placeCalled);
+  for (let season = 0; season < 1; season += 0.05) {
+    const keys = six.map((place) => homeKey({ day: 0, season }, place.accent?.fifths));
+    assert.equal(new Set(keys).size, six.length, `${keys} at season ${season}`);
+  }
+  const share = (place: (typeof PLACES)[number], kit: number) => {
+    const random = seeded(7);
+    let n = 0;
+    for (let i = 0; i < 2000; i++) if (choosePalette({ day: 0.3, season: 0.5 }, undefined, {}, random, false, accented({}, place.accent)).drums === kit) n++;
+    return n / 2000;
+  };
+  const crisp = settingOf("drums", "crisp");
+  assert.ok(share(placeCalled("wellington"), crisp) > 1.5 * share(bergen, crisp));
+  assert.ok(share(placeCalled("seoul"), crisp) < share(bergen, crisp));
+  assert.equal(DRUMKITS.length, 10);
+});
+
+test("an accent adds to the weather's lean and stays within reach", () => {
+  const accent = { fifths: 0, lean: { tempo: 0.5, swing: -0.3 } };
+  assert.deepEqual(accented({ tempo: 0.8, bright: 0.4 }, accent), { tempo: 1, swing: -0.3, bright: 0.4, favour: undefined });
+  assert.deepEqual(accented({ tempo: 0.8 }), { tempo: 0.8 });
 });

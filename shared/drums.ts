@@ -1,3 +1,7 @@
+import { settingOf } from "./presets";
+
+const RIMSHOT = settingOf("drums", "rimshot");
+
 export const DRUM_PARTS: Record<string, { code: string }> = {
   kick: {
     code: `
@@ -37,7 +41,7 @@ const fourFloor = only(palette.pulse.fmap(p => p === 5), s(palette.kickSound.str
 const snare = only(snareBeat, swung(kit(palette.snareSound.struct("~ ~ x ~ ~ ~ x ~"), "~ ~ 808sd:1 ~ ~ ~ 808sd:1 ~"))
   .speed(tuned([1, 0.94, 1.1]))
   .shape(macro.dust)
-  .lpf(macro.drive.range(2500, 6000)).room(0.3)
+  .lpf(macro.drive.range(2500, 6000)).room(palette.drums.fmap(d => d === ${RIMSHOT} ? 0.05 : 0.3))
   .asBeat(atLeast(swell(macro.drive, 0.15, 0.45, 1), 0.6).mul(0.3).mul(evened(palette.snareLevel))))`,
   },
   ghosts: {

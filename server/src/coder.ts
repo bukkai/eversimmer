@@ -6,7 +6,7 @@ import { HELPER_DOCS } from "../../shared/helpers";
 import { MACRO_NAMES, MACROS, type Macro } from "../../shared/macros";
 import { GENRES, PRESETS } from "../../shared/presets";
 import { AXES, BEATS_PER_CYCLE, REGIONS, weightsAt } from "../../shared/map";
-import { describePalette, describeStyle, homeKey, styleWeights, trackKey, type Tides } from "../../shared/palette";
+import { describePalette, describeStyle, styleWeights, trackKey, type Tides } from "../../shared/palette";
 import { DRUM_PART_NAMES, drumSource } from "../../shared/drums";
 import { partSource, REGION_PART_NAMES, REGION_PARTS } from "../../shared/regions";
 import { SCORE, SCORE_NAMES } from "../../shared/score";
@@ -225,6 +225,7 @@ export function sonnetWrite(client: Anthropic, source: Pick<Source, "about" | "r
 export type Kitchen = {
   present: () => number;
   tides: () => Tides;
+  homeKey: () => string;
   form: () => Section[];
   cycle: () => number;
   broth: () => Broth;
@@ -275,7 +276,7 @@ export class LiveCoder {
       this.nextAt += elapsed;
       this.emptySince ??= t;
       if (!this.kitchen.current().isStone && t - this.emptySince >= EMPTY_TO_STONE_MS) {
-        this.kitchen.serve(this.kitchen.stone, "back to the stone, the room emptied", homeKey(this.kitchen.tides()));
+        this.kitchen.serve(this.kitchen.stone, "back to the stone, the room emptied", this.kitchen.homeKey());
         this.served(t);
       }
       return;

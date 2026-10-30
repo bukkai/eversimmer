@@ -69,7 +69,8 @@ const rolling = only(palette.bassRoll.fmap(b => b === 1), n(coloured(played(pale
     region: "psychill",
     code: `
 // psychill: a soft, round kick on the one with a push or two of the track's own (palette.psyKick),
-// never four to the floor; a clap, rim or snare on three in half time, far off in a big room;
+// never four to the floor; a clap, rim or snare on three in half time, far off in a big room (the
+// rim, a short click that would be all room, closer);
 // shakers of noise and hand drums on the track's own figures, sometimes in triplets, short and
 // damped. Each plays where the track chose it, at full level in the genres that play it: the push (palette.pulse 2),
 // three (palette.backbeat 1), shakers and hand drums (palette.perc); the track picks its own kick,
@@ -82,7 +83,7 @@ const psybeat = stack(
     .speed(0.9).lpf(broth.energy.range(350, 800))
     .gain(broth.energy.range(0.25, 0.45).mul(chosen(share('pulse', 'push'), 1)).mul(form.strip.fmap(x => 1 - x)).mul(palette.psyKickLevel)),
   only(palette.backbeat.fmap(b => b === 1), s(palette.psyThreeSound.struct("~ ~ x ~")).mask(palette.psyBeat.fmap(b => b > 0)).mask(open))
-    .lpf(3500).room(0.7).roomsize(6)
+    .lpf(3500).room(palette.psyThreeSound.fmap(s => s === "rm:0" ? 0.2 : 0.7)).roomsize(6)
     .gain(chosen(share('backbeat', 'onThree'), 0.12).mul(form.beat).mul(palette.psyThreeLevel)),
   only(percIs(1), s("white*16").mask(palette.psyShaker.segment(16).fmap(x => x > 0)).mask(open))
     .decay(0.04).sustain(0).hpf(7000)

@@ -21,7 +21,7 @@ import { paletteSignals, styleSignals, styleWeights, tidesAt, trackKey, type Tid
 import { genreSignals, mapTarget, weightsAt, type MapPosition } from "../../shared/map";
 import { loadRegions } from "../../shared/regions";
 import { loadScore } from "../../shared/score";
-import { loadDrums } from "../../shared/drums";
+import { DRUM_PART_NAMES, loadDrums } from "../../shared/drums";
 import { macroSignals } from "../../shared/macros";
 import { DRUM_MACHINES_URL, levelOf } from "../../shared/sounds";
 import { STONE } from "../../shared/stone";
@@ -84,6 +84,13 @@ const library = ready.then(async (repl) => {
   await loadRegions((code) => repl.evaluate(code, false));
   return repl;
 });
+
+const DRUM_LAYERS = new Set([...DRUM_PART_NAMES, "psybeat"]);
+const WEATHER_DRUMS = 0.75;
+let drumLevel = 1;
+
+export const softenDrums = () => (drumLevel = WEATHER_DRUMS);
+const drumScale = (value: { __layer?: string }) => (value.__layer !== undefined && DRUM_LAYERS.has(value.__layer) ? drumLevel : 1);
 
 let routed: GainNode | undefined;
 let volume: GainNode | undefined;
@@ -238,7 +245,7 @@ export async function startEngine(e: EngineEvents = {}, ready: Promise<unknown> 
       const fade = formAt(form, Number(hap.whole.begin)).fade;
       if (fade <= 0.001) return;
       const value = splitSound(foldValue(hap.value as { velocity?: number; s?: unknown; bank?: unknown }, noteToMidi));
-      const scale = fade * levelOf(String(value.s ?? ""), value.bank === undefined ? undefined : String(value.bank));
+      const scale = fade * drumScale(value as { __layer?: string }) * levelOf(String(value.s ?? ""), value.bank === undefined ? undefined : String(value.bank));
       if (scale === 1 && value === hap.value) return trigger(hap, ...rest);
       trigger(hap.withValue(() => ({ ...value, velocity: (value.velocity ?? 1) * scale })), ...rest);
     },

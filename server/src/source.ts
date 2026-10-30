@@ -1,6 +1,6 @@
 import type { Person } from "../../shared/identity";
 import type { ChatLine, ClientMessage, ServerMessage, Sky } from "../../shared/protocol";
-import type { Lean, Tides } from "../../shared/palette";
+import type { Accent, Lean, Tides } from "../../shared/palette";
 import type { Air, Broth, Ingredient } from "../../shared/types";
 
 export type MoodTargets = Omit<Broth, "voices">;
@@ -18,6 +18,7 @@ export interface Source {
 
   tides?(at: number): Tides;
   lean?(at: number): Lean;
+  readonly accent?: Accent;
   air?(at: number): Air;
 
   sky?(at: number): Sky;

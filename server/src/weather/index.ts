@@ -87,6 +87,10 @@ export class Weather implements Source {
     return { fog: reading ? this.hold(at) * haze(reading) : 0 };
   }
 
+  get accent() {
+    return this.place.accent;
+  }
+
   lean(at: number) {
     const reading = this.reading(at);
     return reading && this.hold(at) === 1 ? lean(reading) : {};

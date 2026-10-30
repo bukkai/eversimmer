@@ -14,7 +14,7 @@ import {
   trackEnding,
   type Seam,
 } from "../../shared/form";
-import { choosePalette, homeKey, tidesAt, type Palette, type Tides } from "../../shared/palette";
+import { accented, choosePalette, homeKey, tidesAt, type Palette, type Tides } from "../../shared/palette";
 import { AXES, brothFor, cpsAt, mapTarget, nearestRegions, REGIONS, seasonLean, weightsAt, type MapPosition } from "../../shared/map";
 import { clamp } from "../../shared/numbers";
 import { RECIPE_LENGTH, type ServerMessage } from "../../shared/protocol";
@@ -102,16 +102,16 @@ export class Pot {
       stone,
       epoch,
       tempo: [{ cycle: 0, at: epoch, cps }],
-      key: homeKey(tides),
+      key: homeKey(tides, source.accent?.fifths),
       broth,
       map,
-      form: planTrack(0, liveliness(broth), cps, map.position, { palette: choosePalette(tides, undefined), theme: true }),
+      form: planTrack(0, liveliness(broth), cps, map.position, { palette: choosePalette(tides, undefined, {}, Math.random, false, accented({}, source.accent)), theme: true }),
       timeShift: 0,
       tides: source.tides && tides,
       air: source.air && { ...STILL_AIR },
       ingredients: source.ingredients,
       course,
-      recipe: [{ id: course.id, at: epoch, note: course.note, code: stone, key: homeKey(tides), broth: { ...broth }, cps }],
+      recipe: [{ id: course.id, at: epoch, note: course.note, code: stone, key: homeKey(tides, source.accent?.fifths), broth: { ...broth }, cps }],
     };
     if (kept) {
       try {
@@ -348,10 +348,14 @@ export class Pot {
     return this.source.tides?.(now()) ?? tidesAt(this.wallNow());
   }
 
+  homeKey() {
+    return homeKey(this.tides(), this.source.accent?.fifths);
+  }
+
   travel(ms: number) {
     this.state.timeShift = Math.min(MAX_TIME_SHIFT_MS, Math.max(0, ms));
     this.broadcast({ t: "timeShift", ms: this.state.timeShift });
-    this.setKey(homeKey(this.tides()));
+    this.setKey(this.homeKey());
     this.setMap(this.mapGoal());
     this.newTrackNow();
   }
@@ -368,7 +372,7 @@ export class Pot {
   }
 
   private nextPalette(previous: Palette | undefined, joined: boolean, at = this.state.map.position) {
-    return choosePalette(this.tides(), previous, weightsAt(at), Math.random, joined, this.source.lean?.(now()));
+    return choosePalette(this.tides(), previous, weightsAt(at), Math.random, joined, accented(this.source.lean?.(now()), this.source.accent));
   }
 
   private nextTheme() {

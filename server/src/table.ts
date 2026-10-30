@@ -57,6 +57,7 @@ export class Table {
     this.coder = new LiveCoder(shared.client && sonnetWrite(shared.client, this.source, pot.stone), shared.liveCoder, {
       present: () => this.present,
       tides: () => pot.tides(),
+      homeKey: () => pot.homeKey(),
       form: () => pot.state.form,
       cycle: () => pot.cycleNow(),
       broth: () => pot.state.broth,

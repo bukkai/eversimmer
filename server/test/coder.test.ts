@@ -41,6 +41,7 @@ function cooks(table: Table, minutes: number) {
   const coder = new LiveCoder(write, true, {
     present: () => table.present,
     tides: () => pot.tides(),
+    homeKey: () => pot.homeKey(),
     form: () => pot.state.form,
     cycle: () => pot.cycleNow(),
     broth: () => pot.state.broth,
