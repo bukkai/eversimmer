@@ -46,9 +46,11 @@ Voor de launch speelt alleen de weer-pot, op de voorpagina, zonder live coder. `
 
 ```
 POTS=meander
-WEATHER_PLACE=bergen
+WEATHER_PLACES=bergen,singapore,san-francisco,wellington,sapporo,marrakesh
 LIVE_CODER=off
 ```
+
+Elke plek in `WEATHER_PLACES` is een eigen Meander-pot op de voorpagina: de eerste op `/meander`, de andere op `/meander-<plek>`. Een oude regel `WEATHER_PLACE=bergen` doet niets meer; zonder `WEATHER_PLACES` spelen deze zes.
 
 **Heette de pot op je Pi nog `weather`?** Sinds hij Meander heet, start de server met `POTS=weather` niet meer ("there is no pot called weather" in `journalctl -u eversimmer`). Zodra die versie binnen is, zo, en de muziek gaat verder waar hij was:
 

@@ -10,7 +10,7 @@ import { between, Weather } from "../src/weather";
 import { haze, ingredients, lean, PULL, type Reading } from "../src/weather/mapping";
 import { moonAt, tideAt } from "../src/weather/moon";
 import { parseHours, type Hour } from "../src/weather/open-meteo";
-import { placeCalled } from "../src/weather/places";
+import { placeCalled, tideLag } from "../src/weather/places";
 import { replayed } from "../src/weather/replay";
 
 const HOUR = 60 * 60_000;
@@ -245,7 +245,7 @@ test("the moon goes through its phases as the almanac has them", () => {
 
 test("the tide comes round in 12 hours and 25 minutes, with high water in Bergen when the tables have it", () => {
   const off = (t: number, phase: number) => {
-    const d = Math.abs(tideAt(bergen.tideLag, t) - phase);
+    const d = Math.abs(tideAt(tideLag(bergen), t) - phase);
     return Math.min(d, 1 - d) * 745;
   };
   assert.ok(off(Date.UTC(2026, 9, 29, 11, 46), 0) < 45);
@@ -256,11 +256,25 @@ test("the tide comes round in 12 hours and 25 minutes, with high water in Bergen
   assert.ok(Math.abs(turned) < 0.01 || Math.abs(Math.abs(turned) - 1) < 0.01);
 });
 
+test("far from the North Atlantic the tide keeps the tables too, and away from the sea it follows the moon", () => {
+  const off = (lag: number, t: number) => {
+    const d = tideAt(lag, t);
+    return Math.min(d, 1 - d) * 745;
+  };
+  const wellington = tideLag(placeCalled("wellington"));
+  assert.ok(off(wellington, Date.UTC(2026, 9, 29, 19, 51)) < 30);
+  assert.ok(off(wellington, Date.UTC(2026, 9, 30, 8, 30)) < 30);
+  const marrakesh = placeCalled("marrakesh");
+  const times = Array.from({ length: 300 }, (_, i) => START + i * 5 * 60_000);
+  const highest = times.reduce((a, b) => (moonAt(marrakesh, b).altitude > moonAt(marrakesh, a).altitude ? b : a));
+  assert.ok(off(tideLag(marrakesh), highest) < 15);
+});
+
 test("the weather pot's tides are the sea's and the moon's, following the weather's clock", async () => {
   const { weather, at } = weatherAt(hours(calm, calm));
   await weather.ready;
   const tides = weather.tides(at(START));
-  assert.equal(tides.day, tideAt(bergen.tideLag, START));
+  assert.equal(tides.day, tideAt(tideLag(bergen), START));
   assert.equal(tides.season, moonAt(bergen, START).phase);
   weather.close();
 });

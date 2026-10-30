@@ -1,11 +1,17 @@
 import { DOOR_PATH, WS_PATH } from "../../shared/protocol";
 import { $ } from "./dom";
 
-const id = location.pathname.split("/")[1] || undefined;
+let id = location.pathname.split("/")[1] || undefined;
 let name = id ? id[0].toUpperCase() + id.slice(1) : "Potluck";
 
-export const wsPath = id ? `${WS_PATH}/${encodeURIComponent(id)}` : WS_PATH;
-export const doorPath = id ? `${DOOR_PATH}/${encodeURIComponent(id)}` : DOOR_PATH;
+export const wsPath = () => (id ? `${WS_PATH}/${encodeURIComponent(id)}` : WS_PATH);
+export const doorPath = () => (id ? `${DOOR_PATH}/${encodeURIComponent(id)}` : DOOR_PATH);
+export const potId = () => id;
+
+export function movePot(to: string) {
+  id = to;
+  history.replaceState(null, "", `/${encodeURIComponent(to)}`);
+}
 export const potName = () => name;
 
 export function namePot(n: string) {

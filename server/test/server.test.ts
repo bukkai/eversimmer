@@ -59,7 +59,11 @@ hum`;
 
 const validator = new Validator();
 const server = potServer({
-  pots: [POTS[0], { id: "quiet", name: "Quiet", source: () => quiet, stone: QUIET_STONE }],
+  pots: [
+    POTS[0],
+    { id: "quiet", name: "Quiet", place: "Nowhere", source: () => quiet, stone: QUIET_STONE },
+    { id: "quiet-elsewhere", name: "Quiet", place: "Elsewhere", source: () => quiet, stone: QUIET_STONE },
+  ],
   soon: [{ name: "Later", line: "Still steeping." }],
   validator,
   client: undefined,
@@ -168,11 +172,14 @@ test("talk stays in its pot, and a pot without talk ignores it and its names", a
 
 test("a pot under a sky shows it at its door and on connect, and a chat pot has none", async () => {
   const door = (await (await fetch(`http://${base}/door/quiet`)).json()) as Door;
-  assert.deepEqual(door, { name: "Quiet", talk: false, devControls: false, sky: SKY });
+  const places = [{ id: "quiet", place: "Nowhere" }, { id: "quiet-elsewhere", place: "Elsewhere" }];
+  assert.deepEqual(door, { name: "Quiet", talk: false, devControls: false, sky: SKY, places });
+  assert.deepEqual(((await (await fetch(`http://${base}/door/quiet-elsewhere`)).json()) as Door).places, places);
   const home = (await (await fetch(`http://${base}/door`)).json()) as Door;
   assert.equal(home.name, "Potluck");
   assert.equal(home.talk, true);
   assert.equal(home.sky, undefined);
+  assert.equal(home.places, undefined);
   assert.notEqual((await fetch(`http://${base}/door/nowhere`)).status, 200);
   const { ws, until } = await listen("/ws/quiet");
   const sky = await until("sky");
@@ -183,7 +190,7 @@ test("a pot under a sky shows it at its door and on connect, and a chat pot has 
 
 test("the page is served at a pot's address, and health lists every pot", async () => {
   const health = (await (await fetch(`http://${base}/health`)).json()) as { pots: { pot: string }[] };
-  assert.deepEqual(health.pots.map((p) => p.pot), ["potluck", "quiet"]);
+  assert.deepEqual(health.pots.map((p) => p.pot), ["potluck", "quiet", "quiet-elsewhere"]);
   assert.notEqual((await fetch(`http://${base}/nowhere`)).status, 200);
 });
 
@@ -203,9 +210,12 @@ test("a pot's page is dressed for its door, so a weather pot shows its sky from 
   assert.match(dressPage(html, { name: "Quiet", talk: false, devControls: true, sky: SKY }), /<section id="door">/);
 });
 
-test("the front page lists the pots that play and those still to come", async () => {
+test("the front page lists the pots that play, a pot in several places once, and those still to come", async () => {
+  const elsewhere = await listen("/ws/quiet-elsewhere");
   const pots = (await (await fetch(`http://${base}${POTS_PATH}`)).json()) as Listings;
+  elsewhere.ws.close();
   assert.deepEqual(pots.live.map((p) => p.id), ["potluck", "quiet"]);
+  assert.equal(pots.live[1].listening, 1);
   assert.equal(pots.live[0].line, POTS[0].line);
   assert.deepEqual(pots.soon, [{ name: "Later", line: "Still steeping." }]);
 });

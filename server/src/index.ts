@@ -22,8 +22,10 @@ const LIVE_CODER =
   (process.env.LIVE_CODER !== "off" && process.env.npm_lifecycle_event !== "dev");
 const KEEP_STATE = process.env.KEEP_STATE || undefined;
 const wanted = process.env.POTS?.split(",").map((p) => p.trim());
-const pots = wanted ? wanted.map((id) => POTS.find((p) => p.id === id) ?? fail(`there is no pot called ${id}`)) : POTS;
-const soon = [...POTS.filter((p) => !pots.includes(p)).map(({ name, line = "" }) => ({ name, line })), ...SOON];
+const called = (id: string) => POTS.filter((p) => p.id === id || p.id.startsWith(`${id}-`));
+const pots = wanted ? wanted.flatMap((id) => (called(id).length ? called(id) : fail(`there is no pot called ${id}`))) : POTS;
+const left = POTS.filter((p, i) => !pots.some((q) => q.name === p.name) && POTS.findIndex((q) => q.name === p.name) === i);
+const soon = [...left.map(({ name, line = "" }) => ({ name, line })), ...SOON];
 
 const hasCredentials =
   ["ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_PROFILE"].some((k) => process.env[k]) ||

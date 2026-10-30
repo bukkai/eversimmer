@@ -2,7 +2,7 @@ import { timeAtCycle } from "../../shared/clock";
 import { cleanName } from "../../shared/identity";
 import type { Door, Moment, ServerMessage } from "../../shared/protocol";
 import type { Course, Ingredient } from "../../shared/types";
-import { doorPath, namePot } from "./address";
+import { doorPath, movePot, namePot, potId } from "./address";
 import { addLine, focusChat, hideLines, showNotice, showPeople, showTalk, welcome } from "./chat";
 import { $, remember, remembered } from "./dom";
 import {
@@ -12,6 +12,7 @@ import {
   getBroth,
   getCps,
   getScale,
+  leavePot,
   loadCourse,
   lookahead,
   pauseEngine,
@@ -30,9 +31,9 @@ import {
   warmUp,
 } from "./engine";
 import { showLayers } from "./layerpanel";
-import { clockStats, connect, send, serverNow, startClockAt } from "./net";
+import { clockStats, connect, reconnect, send, serverNow, startClockAt } from "./net";
 import { createPotView } from "./potview";
-import { addCourse, setListening, setOnAir, showInstruments } from "./instruments";
+import { addCourse, forgetCourses, setListening, setOnAir, showInstruments } from "./instruments";
 import { setSky, showSky } from "./sky";
 import { addEntry, followRecipe, setRecipe } from "./recipecard";
 import { offerCode, setStatus, showBroth, showDesk, showDeskAt, showKey, showMap } from "./tuning";
@@ -68,7 +69,7 @@ async function knock(): Promise<Door | undefined> {
   const data = document.getElementById("door-data");
   if (data?.textContent) return JSON.parse(data.textContent);
   try {
-    const res = await fetch(doorPath);
+    const res = await fetch(doorPath());
     return res.ok ? await res.json() : undefined;
   } catch {
     return undefined;
@@ -83,6 +84,7 @@ async function openDoor() {
   $("listen").hidden = false;
   showSky(door.sky);
   showInstruments();
+  showPlaces(door);
 
   const button = $<HTMLButtonElement>("listen-button");
   const note = $("listen-note");
@@ -132,6 +134,33 @@ async function openDoor() {
     }
     show(sounding);
   });
+}
+
+function showPlaces(door: Door) {
+  if (!door.places) return;
+  const nav = $("listen-places");
+  const here = potId() ?? door.places[0].id;
+  const links = door.places.map(({ id, place }) => {
+    const a = document.createElement("a");
+    a.href = `/${encodeURIComponent(id)}`;
+    a.textContent = place;
+    if (id === here) a.setAttribute("aria-current", "page");
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (a.hasAttribute("aria-current")) return;
+      links.forEach((l) => l.removeAttribute("aria-current"));
+      a.setAttribute("aria-current", "page");
+      $("listen-place").textContent = place;
+      $("listen-conditions").textContent = "Listening for the weather…";
+      movePot(id);
+      leavePot();
+      forgetCourses();
+      reconnect();
+    });
+    return a;
+  });
+  nav.append(...links);
+  nav.hidden = false;
 }
 
 function onMessage(msg: ServerMessage) {

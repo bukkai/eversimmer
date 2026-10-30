@@ -10,6 +10,13 @@ const HEARTBEAT_MS = 30_000;
 export function potServer({ pots, soon = [], ...shared }: Shared & { pots: PotKind[]; soon?: Listing[] }) {
   const tables = new Map(pots.map((kind) => [kind.id, new Table(kind, shared)]));
   const home = pots[0].id;
+  const named = (name: string) => pots.filter((p) => p.name === name);
+  const doorOf = (table: Table | undefined) => {
+    if (!table) return undefined;
+    const door = table.door();
+    const kin = named(door.name);
+    return kin.length > 1 ? { ...door, places: kin.map(({ id, place = id }) => ({ id, place })) } : door;
+  };
   const startedAt = Date.now();
 
   const http = createServer((req, res) => {
@@ -20,17 +27,19 @@ export function potServer({ pots, soon = [], ...shared }: Shared & { pots: PotKi
       return;
     }
     const path = (req.url ?? "").split("?")[0];
-    const door = path === DOOR_PATH ? tables.get(home) : path.startsWith(`${DOOR_PATH}/`) && tables.get(path.slice(DOOR_PATH.length + 1));
+    const door = doorOf(path === DOOR_PATH ? tables.get(home) : path.startsWith(`${DOOR_PATH}/`) ? tables.get(path.slice(DOOR_PATH.length + 1)) : undefined);
     if (door) {
       res.writeHead(200, { "content-type": "application/json", "cache-control": "no-cache" });
-      res.end(JSON.stringify(door.door()));
+      res.end(JSON.stringify(door));
       return;
     }
     if (path === POTS_PATH) {
-      const live = pots.map(({ id, name, line = "" }) => {
-        const table = tables.get(id)!;
-        return { id, name, line, listening: table.places, since: table.pot.state.epoch };
-      });
+      const live = pots
+        .filter((p) => named(p.name)[0] === p)
+        .map(({ id, name, line = "" }) => {
+          const kin = named(name).map((p) => tables.get(p.id)!);
+          return { id, name, line, listening: kin.reduce((n, t) => n + t.places, 0), since: Math.min(...kin.map((t) => t.pot.state.epoch)) };
+        });
       const listings: Listings = { live, soon };
       res.writeHead(200, { "content-type": "application/json", "cache-control": "no-cache" });
       res.end(JSON.stringify(listings));
@@ -44,7 +53,7 @@ export function potServer({ pots, soon = [], ...shared }: Shared & { pots: PotKi
       serveSource(res);
       return;
     }
-    serveClient(req.url ?? "/", res, (path) => tables.get(path === "/" ? home : path.slice(1))?.door());
+    serveClient(req.url ?? "/", res, (path) => doorOf(tables.get(path === "/" ? home : path.slice(1))));
   });
 
   const wss = new WebSocketServer({ noServer: true, maxPayload: 64 * 1024 });

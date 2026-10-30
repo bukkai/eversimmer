@@ -1,6 +1,6 @@
 import type { Course } from "../../shared/types";
 import { nearestRegions } from "../../shared/map";
-import { $ } from "./dom";
+import { $, remember, remembered } from "./dom";
 import { currentCycle, getAir, getCps, getMapPosition, readSignal, straining, tidesNow } from "./engine";
 import { serverNow } from "./net";
 import { currentSky, weatherNow } from "./sky";
@@ -48,9 +48,16 @@ function row(name: string, pulls?: string) {
 
 export function showInstruments() {
   const panel = $("listen-inputs");
-  const head = document.createElement("div");
+  const head = document.createElement("button");
   head.className = "head";
   head.textContent = "inputs → broth";
+  const fold = (folded: boolean) => {
+    panel.classList.toggle("folded", folded);
+    head.setAttribute("aria-expanded", String(!folded));
+    remember("inputs", folded ? "folded" : "open");
+  };
+  fold(remembered("inputs") === "folded");
+  head.addEventListener("click", () => fold(!panel.classList.contains("folded")));
   const rows = INPUTS.map(([name, , [, pulls]]) => row(name, pulls));
   const tide = row("tide", "palette");
   const moon = row("moon", "style");
@@ -109,6 +116,8 @@ export function setListening(n: number) {
 export function setOnAir(epoch: number) {
   since = epoch;
 }
+
+export const forgetCourses = () => courses.clear();
 
 export function addCourse(course: Course) {
   courses.set(course.id, course);

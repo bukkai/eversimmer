@@ -16,6 +16,7 @@ const pending = new Map<number, number>();
 let samples: { offset: number; rtt: number }[] = [];
 let onSynced: (() => void) | undefined;
 let heardAt = 0;
+let reopen: (() => void) | undefined;
 
 export const serverNow = () => performance.now() + (offset ?? 0);
 export const isSynced = () => offset !== undefined;
@@ -33,7 +34,7 @@ export function connect(onMessage: (msg: ServerMessage) => void, onStatus: (s: s
     const open = () => {
       clearTimeout(retry);
       const proto = location.protocol === "https:" ? "wss" : "ws";
-      const socket = new WebSocket(`${proto}://${location.host}${wsPath}`);
+      const socket = new WebSocket(`${proto}://${location.host}${wsPath()}`);
       ws = socket;
       socket.onopen = () => {
         retries = 0;
@@ -63,6 +64,12 @@ export function connect(onMessage: (msg: ServerMessage) => void, onStatus: (s: s
       onStatus("reconnecting…");
       open();
     };
+    reopen = () => {
+      const socket = ws;
+      ws = undefined;
+      socket?.close();
+      open();
+    };
     open();
     setInterval(() => {
       if (ws?.readyState === WebSocket.OPEN && performance.now() - heardAt > RESYNC_MS + SILENT_MS) giveUp();
@@ -81,6 +88,8 @@ export function connect(onMessage: (msg: ServerMessage) => void, onStatus: (s: s
     addEventListener("online", check);
   });
 }
+
+export const reconnect = () => reopen?.();
 
 export function startClockAt(serverMs: number) {
   offset = serverMs - performance.now();

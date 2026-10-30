@@ -314,6 +314,7 @@ export function applyState(state: PotState) {
   if (state.upcoming) loadCourse(state.upcoming);
 }
 
+export const leavePot = () => (epoch = undefined);
 export const setTempo = (t: TempoSegment[]) => (tempo = t);
 export const setBroth = (b: Broth) => Object.assign(live, b);
 export const setTimeShift = (ms: number) => (timeShift = ms);

@@ -7,7 +7,7 @@ import type { Tides } from "../../../shared/palette";
 import { conditions, describe, felt, haze, ingredients, lean, PULL, REACH, type Dimension, type Reading } from "./mapping";
 import { moonAt, moonlight, tideAt } from "./moon";
 import { forecast, type Hour } from "./open-meteo";
-import { localHour, type Place } from "./places";
+import { localHour, tideLag, type Place } from "./places";
 
 const HOUR_MS = 60 * 60_000;
 const POLL_MS = 12 * 60_000;
@@ -79,7 +79,7 @@ export class Weather implements Source {
 
   tides(at: number): Tides {
     const t = this.clock(at);
-    return { day: tideAt(this.place.tideLag, t), season: moonAt(this.place, t).phase };
+    return { day: tideAt(tideLag(this.place), t), season: moonAt(this.place, t).phase };
   }
 
   air(at: number) {
@@ -202,9 +202,10 @@ export class Weather implements Source {
 
   private heavens(t: number) {
     const moon = moonAt(this.place, t);
-    const tide = tideAt(this.place.tideLag, t);
+    const tide = tideAt(tideLag(this.place), t);
     const sea = tide < 0.08 || tide > 0.92 ? "high water" : Math.abs(tide - 0.5) < 0.08 ? "low water" : tide < 0.5 ? "the tide falling" : "the tide rising";
-    return `the moon ${Math.round(moon.lit * 100)}% lit and ${moon.altitude > 0 ? "up" : "down"}, ${sea}`;
+    const lit = `the moon ${Math.round(moon.lit * 100)}% lit and ${moon.altitude > 0 ? "up" : "down"}`;
+    return this.place.tideLag === undefined ? lit : `${lit}, ${sea}`;
   }
 
   private hold(at: number) {

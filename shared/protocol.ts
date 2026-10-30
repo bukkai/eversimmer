@@ -52,7 +52,7 @@ export type Sky = {
   credit: { name: string; url: string };
 };
 
-export type Door = { name: string; talk: boolean; devControls: boolean; sky?: Sky };
+export type Door = { name: string; talk: boolean; devControls: boolean; sky?: Sky; places?: { id: string; place: string }[] };
 export const DOOR_PATH = "/door";
 export type Listing = { id?: string; name: string; line: string; listening?: number; since?: number };
 export type Listings = { live: Listing[]; soon: Listing[] };
