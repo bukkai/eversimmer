@@ -76,6 +76,7 @@ const MODE_STEPS: Record<string, number[]> = {
   mixolydian: [0, 2, 4, 5, 7, 9, 10],
   major: [0, 2, 4, 5, 7, 9, 11],
   ionian: [0, 2, 4, 5, 7, 9, 11],
+  lydian: [0, 2, 4, 6, 7, 9, 11],
 };
 const semitones = (steps: number[], degree: number) => steps[((degree % 7) + 7) % 7] + 12 * Math.floor(degree / 7);
 
@@ -91,7 +92,7 @@ export function colourStep(x: number, root: number, colour: number, scale: strin
   return `${x}${(by > 0 ? "#" : "b").repeat(Math.abs(by))}`;
 }
 
-export const FIGURE_REST = -99;
+const FIGURE_REST = -99;
 type Figures = { comp: number[]; kick: number[]; low: number[]; lowLate: number[]; arp: number[]; ring: number };
 
 function writeFigures(seed: number, groove: number, knobs: FigureKnobs): Figures {

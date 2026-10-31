@@ -21,6 +21,8 @@ export interface Source {
   readonly accent?: Accent;
   air?(at: number): Air;
 
+  pretend?(sky: string | undefined): void;
+
   sky?(at: number): Sky;
 
   readonly talk?: Talk;

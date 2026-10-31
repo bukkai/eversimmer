@@ -35,7 +35,7 @@ export function renderRecipe(list: HTMLOListElement, entries: RecipeEntry[], pla
 export const clock = (at: number) =>
   new Date(at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-export function standalone(entry: RecipeEntry, pot: string) {
+function standalone(entry: RecipeEntry, pot: string) {
   const b = entry.broth;
   const signals = (Object.keys(b) as BrothKey[]).map((k) => `  ${k}: pure(${round(b[k])}),`).join("\n");
   return [

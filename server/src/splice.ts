@@ -1,7 +1,7 @@
 import { parse } from "acorn";
 
-export type Edit = { parts: string[]; remove: string[]; final: string };
-export type Spliced = { ok: true; code: string } | { ok: false; problems: string[] };
+type Edit = { parts: string[]; remove: string[]; final: string };
+type Spliced = { ok: true; code: string } | { ok: false; problems: string[] };
 
 type Node = { type: string; start: number; end: number; [key: string]: any };
 
@@ -112,7 +112,7 @@ function identifiers(node: Node, found = new Set<string>()) {
   return found;
 }
 
-export type Difference = { parts: string[]; remove: string[]; final: string };
+type Difference = { parts: string[]; remove: string[]; final: string };
 
 export function difference(base: string, code: string): Difference | undefined {
   const from = blocks(base);

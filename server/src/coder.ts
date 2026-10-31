@@ -89,7 +89,7 @@ Every track is its own record. When it starts, the server picks a palette for it
 - palette.groove (0 laid-back, 1 boom-bap, 2 skipping, 3 broken): how the track moves. The ghost notes and hats have one figure per groove, chosen with palette.groove.pick([...]); a part you add with a rhythm of its own should follow it the same way.
 - The track's own figures, two bars long, written for its groove: palette.comp (the keys' comping on eighths: 0 rest, 1 a chord on the eighth, 2 a sixteenth after it), palette.arp (the keys' arpeggio on eighths, steps over the chord's root, -99 for a rest; read it with .segment(8) and mask out the rests), palette.ring (0 … 1, how long the keys ring out), palette.kick (0 or 1 on sixteenths, never on the snare's two and four), palette.low and palette.lowLate (the bass on eighths, and the notes a sixteenth after their eighth: a step over the root, -99 for a rest). Read them with .segment(8) or .segment(16), like the stone does; the bass and the comping lock to the kick. palette.swing (0 … 2, nearly straight to heavy) is the swing swung() gives every drum part; palette.kit (0 dusty, 1 deep, 2 tight) tunes the drums, like .speed(palette.kit.fmap(k => [1, 0.88, 1.08][k])).
 - The track's own drum kit (palette.drums, 0 … 7): play its samples with palette.kickSound, palette.snareSound and palette.hatSound (sample names like "gretsch:2", as a signal: s(palette.snareSound.struct("~ ~ x ~ ~ ~ x ~"))), at palette.kickLevel, snareLevel and hatLevel (multiply the gain by them; they even the kits out). The melody style keeps its 808.
-- The track's own sound, so it sounds like another record: palette.wow (0 … 1, how far the keys and bass wobble), palette.bright (0 … 1, how open the keys' filters are), palette.bassTone (0 a round sine, 1 a warm triangle, 2 a short pluck), palette.motifSound (0 the palette's bells, 1 a flute, 2 a muted guitar), palette.vinyl (0 … 1, how much crackle and dust). Keep what they change small; they only colour the genre.
+- The track's own sound, so it sounds like another record: palette.wow (0 … 1, how far the keys and bass wobble), palette.bright (0 … 1, how open the keys' filters are), palette.bassTone (0 a round sine, 1 a warm triangle, 2 a short pluck), palette.motifSound (0 the palette's bells, 1 a flute, 2 a muted guitar), palette.vinyl (0 … 1, how much crackle and dust). A pot with an accent also has palette.voice (0 none, else its own voice singing the melody now and then, per VOICES: 1 koto, 2 harp, 3 muted trumpet, 4 ney, 5 marimba, 6 pan flute) and palette.space (-1 … 1, a smaller and drier or a larger and wetter room; wet() and wide() follow it). Keep what they change small; they only colour the genre.
 - palette.fifths (-1 … 2, the track's key against the pot's) and palette.tempo (about 0.94 … 1.06, against the region's): only to read, the key and the clock already follow them.
 - palette.day and palette.season: the phases (0 … 1) of two slow tides, a day of 20 hours and a season of 19 days, which lean which palettes come up. Use them sparingly, for very slow colour.
 In the stone each choice is a masked layer, like .mask(palette.keys.fmap(k => k === 2)). The point is that no single sound plays for more than a track or two: when you add a part that would play all the time, give it variants that follow the palette, or let it rest when the palette rests.
@@ -166,9 +166,9 @@ const Draft = z.object({
   key: z.enum(KEYS),
   note: z.string(),
 });
-export type Draft = z.infer<typeof Draft>;
+type Draft = z.infer<typeof Draft>;
 
-export type Brief = {
+type Brief = {
   tides: Tides;
   form: Section[];
   cycle: number;
@@ -222,7 +222,7 @@ export function sonnetWrite(client: Anthropic, source: Pick<Source, "about" | "r
   };
 }
 
-export type Kitchen = {
+type Kitchen = {
   present: () => number;
   tides: () => Tides;
   homeKey: () => string;
@@ -401,7 +401,7 @@ function writeBrief(t: number, b: Brief) {
       Object.fromEntries(Object.entries(b.map.position).map(([k, v]) => [k, r(v)])),
     )}. The tempo is ${bpm} BPM right now, a cycle lasts ${(1 / b.cps).toFixed(2)} s.`,
     describeTrack(b.form, b.cycle, b.cps, b.tides),
-    `The broth now: ${JSON.stringify(broth)}, so broth.scale is "${scaleFor(trackKey(b.key, paletteAt(b.form, b.cycle).fifths), b.broth.valence, weightsAt(b.map.position), paletteAt(b.form, b.cycle).parent)}". The pot's key is ${b.key}, this track's ${trackKey(b.key, paletteAt(b.form, b.cycle).fifths)}.`,
+    `The broth now: ${JSON.stringify(broth)}, so broth.scale is "${scaleFor(trackKey(b.key, paletteAt(b.form, b.cycle).fifths), b.broth.valence, weightsAt(b.map.position), paletteAt(b.form, b.cycle).parent, paletteAt(b.form, b.cycle).mode)}". The pot's key is ${b.key}, this track's ${trackKey(b.key, paletteAt(b.form, b.cycle).fifths)}.`,
     `In the pot: ${ingredients.length ? JSON.stringify(ingredients) : "nothing yet"}`,
     `The last recipe notes, oldest first:\n${b.recipe.map((n) => `- ${n}`).join("\n") || "- the stone"}`,
     b.digest,

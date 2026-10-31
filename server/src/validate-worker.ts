@@ -61,7 +61,7 @@ Object.assign(
   globalThis,
   courseGlobals(core.signal, {
     broth: () => live,
-    scale: () => scaleFor(trackKey(key, palette.fifths), live.valence, weightsAt(position), palette.parent),
+    scale: () => scaleFor(trackKey(key, palette.fifths), live.valence, weightsAt(position), palette.parent, palette.mode),
     position: () => position,
     moment: () => moment,
     palette: () => palette,

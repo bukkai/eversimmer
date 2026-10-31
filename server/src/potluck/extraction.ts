@@ -6,7 +6,7 @@ import type { FoundIngredient } from "../pantry";
 import { logUsage } from "../usage";
 
 const MODEL = "claude-haiku-5-5";
-export const BATCH_INTERVAL_MS = 60_000;
+const BATCH_INTERVAL_MS = 60_000;
 const MAX_BATCH = 200;
 const MAX_INGREDIENTS = 5;
 
@@ -43,13 +43,13 @@ const Extraction = z.object({
   flags: z.array(z.object({ message: z.number(), reason: z.string() })),
 });
 
-export type BatchLine = { id: string; name: string; text: string };
+type BatchLine = { id: string; name: string; text: string };
 export type Mood = Omit<z.infer<typeof Extraction>["moods"][number], "name">;
 export type PersonMood = { name: string; mood: Mood };
 export type Flag = { id: string; name: string; reason: string };
 export type Reading = { moods: PersonMood[]; ingredients: FoundIngredient[]; flags: Flag[] };
 
-export type Extract = (lines: BatchLine[], inThePot: string[]) => Promise<z.infer<typeof Extraction> | null>;
+type Extract = (lines: BatchLine[], inThePot: string[]) => Promise<z.infer<typeof Extraction> | null>;
 
 export function haikuExtract(client: Anthropic): Extract {
   return async (lines, inThePot) => {

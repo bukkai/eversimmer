@@ -32,6 +32,8 @@ export type Sky = {
   pace: number;
   latitude: number;
   longitude: number;
+  tint?: string;
+  pretend?: string;
   weather?: {
     conditions: string;
     code: number;
@@ -52,7 +54,7 @@ export type Sky = {
   credit: { name: string; url: string };
 };
 
-export type Door = { name: string; talk: boolean; devControls: boolean; sky?: Sky; places?: { id: string; place: string }[] };
+export type Door = { name: string; page: string; talk: boolean; devControls: boolean; sky?: Sky; places?: { id: string; place: string }[] };
 export const DOOR_PATH = "/door";
 export type Listing = { id?: string; name: string; line: string; listening?: number; since?: number };
 export type Listings = { live: Listing[]; soon: Listing[] };
@@ -93,6 +95,7 @@ export type ClientMessage =
   | { t: "dev:travel"; ms: number }
   | { t: "dev:map"; patch: Partial<MapPosition> }
   | { t: "dev:key"; key: string }
+  | { t: "dev:sky"; sky: string }
   | { t: "dev:feedback"; text: string; cycle: number };
 
 export const WS_PATH = "/ws";

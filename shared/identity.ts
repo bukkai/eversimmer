@@ -1,4 +1,4 @@
-export const COLORS = [
+const COLORS = [
   "#c8553d",
   "#d99a2b",
   "#6a994e",
@@ -15,7 +15,7 @@ export type Person = {
   color: string;
 };
 
-export const MAX_NAME_LENGTH = 24;
+const MAX_NAME_LENGTH = 24;
 
 export const cleanName = (name: string) =>
   name.replace(/\s+/g, " ").trim().slice(0, MAX_NAME_LENGTH);

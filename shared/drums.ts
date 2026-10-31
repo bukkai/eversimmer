@@ -187,7 +187,7 @@ const ticks = only(palette.perc.fmap(p => p === 6), stack(
 };
 export const DRUM_PART_NAMES = Object.keys(DRUM_PARTS);
 
-export const drumCode = (name: string) => `${DRUM_PARTS[name].code.trim()}\n${name}`;
+const drumCode = (name: string) => `${DRUM_PARTS[name].code.trim()}\n${name}`;
 
 export const drumSource = (name: string) => DRUM_PARTS[name].code.trim();
 

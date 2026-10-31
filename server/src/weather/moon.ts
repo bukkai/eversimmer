@@ -28,7 +28,7 @@ function moonPosition(d: number) {
   return { ra: rightAscension(l, b), dec: declination(l, b), km: 385_001 - 20_905 * Math.cos(m) };
 }
 
-export type Moon = {
+type Moon = {
   phase: number;
   lit: number;
   altitude: number;

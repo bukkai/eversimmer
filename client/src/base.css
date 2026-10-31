@@ -1,0 +1,87 @@
+:root {
+  --bg: #f4efe6;
+  --panel: #fbf8f2;
+  --ink: #2b241c;
+  --muted: #8a7d6c;
+  --accent: #b5562c;
+  --line: #e2d9ca;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17130f;
+    --panel: #201b16;
+    --ink: #eee5d8;
+    --muted: #9a8c7a;
+    --accent: #e07a48;
+    --line: #342c24;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 ui-serif, Georgia, serif;
+}
+.mono { font-family: ui-monospace, Menlo, monospace; font-size: 13px; color: var(--muted); }
+h1, h2 { font-weight: 500; margin: 0; }
+h3 { font-weight: 500; font-size: 1rem; margin: 0; }
+button {
+  font: inherit;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.5em 1.2em;
+  cursor: pointer;
+}
+button.ghost { background: transparent; color: var(--accent); }
+button:disabled { opacity: 0.5; cursor: wait; }
+input:not([type]), input[type="text"] {
+  font: inherit;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.55em 1.1em;
+  min-width: 0;
+}
+input:not([type]):focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+input[type="range"] { accent-color: var(--accent); }
+select { font: inherit; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 0.2em 0.5em; }
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 0;
+}
+.card header { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 1rem; }
+
+footer { text-align: center; padding: 16px; }
+footer a { color: var(--muted); }
+footer a:hover { color: var(--accent); }
+footer p { margin: 0 0 0.3em; }
+
+.stats:not(:empty)::before {
+  content: "";
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-right: 0.5em;
+  border-radius: 50%;
+  background: currentColor;
+  animation: breathe 3.2s ease-in-out infinite;
+}
+@keyframes breathe { 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) {
+  .stats::before { animation: none; }
+}

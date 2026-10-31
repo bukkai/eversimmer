@@ -30,9 +30,8 @@ export async function serveClient(url: string, res: ServerResponse, door: (path:
   try {
     const wanted = decodeURIComponent(url.split("?")[0]);
     const pot = door(wanted);
-    const path = normalize(join(CLIENT_DIR, pot ? "/" : wanted));
-    if (!path.startsWith(CLIENT_DIR)) throw new Error("outside the client");
-    const file = path.endsWith("/") ? join(path, "index.html") : path;
+    const file = normalize(join(CLIENT_DIR, pot ? `${pot.page}.html` : wanted));
+    if (!file.startsWith(CLIENT_DIR)) throw new Error("outside the client");
     const body = await readFile(file);
     const cache = file.includes("/assets/") ? "public, max-age=31536000, immutable" : "no-cache";
     res.writeHead(200, { "content-type": TYPES[extname(file)] ?? "application/octet-stream", "cache-control": cache });
@@ -47,13 +46,10 @@ const escapeHtml = (text: string) =>
 
 export function dressPage(html: string, door: Door) {
   const data = `<script id="door-data" type="application/json">${JSON.stringify(door).replace(/</g, "\\u003c")}</script>`;
-  const page = html.replace("</head>", () => `${data}\n  </head>`);
-  if (!door.sky || door.devControls) return page;
-  const station = escapeHtml(`Eversimmer FM · ${door.name}`);
-  return page
-    .replace('<section id="door">', '<section id="door" hidden>')
-    .replace('<section id="listen" hidden>', '<section id="listen">')
-    .replace(/(<title>)[^<]*/, (_, tag) => tag + station)
-    .replace(/(<a id="listen-station"[^>]*>)[^<]*/, (_, tag) => tag + station)
-    .replace(/(<h1 id="listen-place">)[^<]*/, (_, tag) => tag + escapeHtml(door.sky!.place));
+  const name = escapeHtml(door.name);
+  const page = html
+    .replace("</head>", () => `${data}\n  </head>`)
+    .replace(/(<title>)[^<]*/, (_, tag) => `${tag}Eversimmer FM · ${name}`)
+    .replace(/(<span class="pot-name">)[^<]*/g, (_, tag) => tag + name);
+  return door.sky ? page.replace(/(<h1 id="listen-place">)[^<]*/, (_, tag) => tag + escapeHtml(door.sky!.place)) : page;
 }

@@ -1,5 +1,4 @@
 import { DOOR_PATH, WS_PATH } from "../../shared/protocol";
-import { $ } from "./dom";
 
 let id = location.pathname.split("/")[1] || undefined;
 let name = id ? id[0].toUpperCase() + id.slice(1) : "Potluck";
@@ -26,9 +25,5 @@ export const potName = () => name;
 export function namePot(n: string) {
   name = n;
   document.title = `Eversimmer FM · ${n}`;
-  $("pot-name").textContent = n;
-  $("chat-name").textContent = n;
-  $("listen-station").textContent = `Eversimmer FM · ${n}`;
+  for (const el of document.querySelectorAll(".pot-name")) el.textContent = n;
 }
-
-namePot(name);

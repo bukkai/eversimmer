@@ -8,6 +8,8 @@
     "noEmit": true,
     "skipLibCheck": true,
     "isolatedModules": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "types": ["vite/client"]
   },
   "include": ["src", "../shared"]

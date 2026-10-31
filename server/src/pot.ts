@@ -208,6 +208,12 @@ export class Pot {
     this.setMap(this.mapGoal());
   }
 
+  arrive() {
+    this.setBroth(this.source.targets(now()));
+    this.setMap(this.mapGoal());
+    this.nextTrackSoon();
+  }
+
   jumpTo(regionId: string, now = false) {
     const region = REGIONS.find((r) => r.id === regionId);
     if (!region) return;

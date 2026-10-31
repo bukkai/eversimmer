@@ -1,6 +1,6 @@
 import { FORM_REST, type FormValues } from "../../shared/form";
 import { mapTarget, REGIONS, weightsAt, type MapPosition } from "../../shared/map";
-import { DRIFT, DRUMKITS, DUB, TR606_KIT, TR909_KIT, GROOVES, KITS, MOODY, OWN_LOOP, SWINGS, type Palette, type Style } from "../../shared/palette";
+import { DRIFT, DUB, TR606_KIT, TR909_KIT, GROOVES, KITS, MOODY, OWN_LOOP, SWINGS, VOICES, type Palette, type Style } from "../../shared/palette";
 import { DRONES } from "../../shared/song";
 import { RESTING_BROTH, type Broth } from "../../shared/types";
 
@@ -45,6 +45,8 @@ const paletteFor = (i: number): Palette => ({
   vinyl: ((i + 2) % 3) / 2,
   drone: (i % (DRONES.length + 1)) - 1,
   psy: i * 7727,
+  voice: i % VOICES.length,
+  space: ((i % 3) - 1) * 0.8,
   pulse: 0,
   backbeat: 0,
   perc: 0,

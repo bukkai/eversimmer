@@ -2,7 +2,7 @@ import { GENRE_FILES } from "./genres/index";
 import type { Macro } from "./macros";
 
 export const GENRES = GENRE_FILES.map((g) => g.region.id);
-export type Genre = string;
+type Genre = string;
 
 export const SETTINGS = {
   keys: ["epiano", "piano", "organ", "vibraphone", "guitar", "moody", "drift", "dub"],
@@ -25,7 +25,7 @@ export type SettingKnob = keyof typeof SETTINGS;
 export type Setting<K extends SettingKnob> = (typeof SETTINGS)[K][number];
 export const settingOf = <K extends SettingKnob>(knob: K, name: Setting<K>) => (SETTINGS[knob] as readonly string[]).indexOf(name);
 
-export type Knobs = { [K in SettingKnob]: Partial<Record<Setting<K>, number>> } & {
+type Knobs = { [K in SettingKnob]: Partial<Record<Setting<K>, number>> } & {
   progression: number;
   ownLoop: number;
   drone: number;
@@ -58,7 +58,7 @@ export type PsyKnobs = {
   change: { hand: number; noHands: number; kick: number; shaker: number; bass: number; twist: number };
 };
 
-export type ModeKnob = { lowest: number; highest?: number } | { dark: number; light: number; below: number };
+type ModeKnob = { lowest: number; highest?: number } | { dark: number; light: number; below: number };
 
 export type Preset = {
   knobs: Partial<Knobs>;
@@ -117,7 +117,7 @@ const LEANS = Object.fromEntries(
   ) as Partial<PaletteKnobs>]),
 ) as Record<Genre, Partial<PaletteKnobs>>;
 
-export function knobsAt(weights: Partial<Record<string, number>>): PaletteKnobs {
+function knobsAt(weights: Partial<Record<string, number>>): PaletteKnobs {
   const at = <K extends keyof PaletteKnobs>(k: K, rest: number, i?: number) =>
     GENRES.reduce((x, g) => {
       const lean = LEANS[g][k];
@@ -132,8 +132,8 @@ export function knobsAt(weights: Partial<Record<string, number>>): PaletteKnobs 
   ) as PaletteKnobs;
 }
 
-export const BORROW = 0.25;
-export const MUTATION = 0.12;
+const BORROW = 0.25;
+const MUTATION = 0.12;
 
 export const CHOICE_KNOBS = [
   "keys", "role", "octave", "prog", "drone", "motif", "drums", "pulse", "backbeat", "perc", "bassRoll", "lead", "chords", "pad",
@@ -145,11 +145,11 @@ const FIELDS: Record<ChoiceKnob, (keyof PaletteKnobs)[]> = {
   bassRoll: ["bassRoll"], lead: ["lead"], chords: ["chords"], pad: ["pad"],
 };
 
-export type Crossing = { parent: string; neighbour: string; borrowed: ChoiceKnob[] };
+type Crossing = { parent: string; neighbour: string; borrowed: ChoiceKnob[] };
 
 export const LATE_KNOBS: ChoiceKnob[] = ["pad"];
 
-export const knobsFor = (region: string): PaletteKnobs => knobsAt({ [region]: 1 });
+const knobsFor = (region: string): PaletteKnobs => knobsAt({ [region]: 1 });
 const same = (a: PaletteKnobs, b: PaletteKnobs, k: ChoiceKnob) => FIELDS[k].every((f) => JSON.stringify(a[f]) === JSON.stringify(b[f]));
 
 export function cross(weights: Partial<Record<string, number>>, random: () => number): Crossing {

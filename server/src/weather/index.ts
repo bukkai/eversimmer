@@ -3,6 +3,7 @@ import { RESTING_BROTH, type Broth } from "../../../shared/types";
 import { Pantry } from "../pantry";
 import type { MoodTargets, Source, SourceContext } from "../source";
 import type { Sky } from "../../../shared/protocol";
+import { SKIES } from "../../../shared/skies";
 import type { Tides } from "../../../shared/palette";
 import { conditions, describe, felt, haze, ingredients, lean, PULL, REACH, type Dimension, type Reading } from "./mapping";
 import { moonAt, moonlight, tideAt } from "./moon";
@@ -40,6 +41,7 @@ export class Weather implements Source {
   private told = -Infinity;
   private shown = -Infinity;
   private rest: Omit<Broth, "voices"> = resting();
+  private pretended: string | undefined;
   private timer: NodeJS.Timeout;
   readonly ready: Promise<void>;
 
@@ -62,8 +64,14 @@ export class Weather implements Source {
   }
 
   reading(at: number): Reading | undefined {
-    if (!this.hours.length) return undefined;
     const t = this.clock(at);
+    const pretend = this.pretended && SKIES[this.pretended];
+    if (pretend) {
+      const { name: _, fall, ...hour } = pretend;
+      const pressure = this.hours.length ? between(this.hours, t).pressure : 1013;
+      return { ...hour, at: t, pressure, fall, hour: localHour(this.place, t), usual: hour.temperature, moon: moonlight(moonAt(this.place, t)) };
+    }
+    if (!this.hours.length) return undefined;
     const now = between(this.hours, t);
     const around = this.hours.filter((h) => Math.abs(h.at - t) <= USUAL_OVER_MS);
     const usual = around.length ? around.reduce((sum, h) => sum + h.temperature, 0) / around.length : now.temperature;
@@ -116,7 +124,7 @@ export class Weather implements Source {
     const reading = this.reading(at);
     const stretch = reading && Math.floor(reading.at / SEASON_EVERY_MS);
     let found = false;
-    const ahead = reading && reading.at < this.hours[this.hours.length - 1].at + HOUR_MS;
+    const ahead = reading && this.hours.length > 0 && reading.at < this.hours[this.hours.length - 1].at + HOUR_MS;
     if (reading && ahead && Math.floor(reading.at / HOUR_MS) !== this.told) {
       this.told = Math.floor(reading.at / HOUR_MS);
       console.log(this.line(reading));
@@ -139,6 +147,15 @@ export class Weather implements Source {
     this.seasoned = -Infinity;
   }
 
+  pretend(sky: string | undefined) {
+    if (sky !== undefined && !Object.hasOwn(SKIES, sky)) return;
+    this.pretended = sky;
+    this.reset();
+    this.shown = this.told = -Infinity;
+    console.log(`${this.place.name}: ${sky ? `pretending ${SKIES[sky].name}` : "its own sky again"}`);
+    this.settle(this.table.now());
+  }
+
   restAt(broth: Omit<Broth, "voices">) {
     this.rest = broth;
   }
@@ -153,6 +170,8 @@ export class Weather implements Source {
       pace: (this.clock(at + 60_000) - this.clock(at)) / 60_000,
       latitude: this.place.latitude,
       longitude: this.place.longitude,
+      ...(this.place.tint && { tint: this.place.tint }),
+      ...(this.pretended && { pretend: this.pretended }),
       weather: r && {
         conditions: conditions(r),
         code: r.code,
@@ -213,6 +232,7 @@ export class Weather implements Source {
   }
 
   private hold(at: number) {
+    if (this.pretended) return 1;
     const stale = at - this.loadedAt - STALE_MS;
     return stale <= 0 ? 1 : 2 ** (-stale / FADE_HALF_LIFE_MS);
   }

@@ -6,7 +6,7 @@ import { forecast } from "./weather/open-meteo";
 import { placeCalled } from "./weather/places";
 import { replayed } from "./weather/replay";
 
-const places = (process.env.WEATHER_PLACES ?? "wellington,dublin,san-francisco,rio-de-janeiro,seoul,marrakesh")
+const places = (process.env.WEATHER_PLACES ?? "dublin,marrakesh,rio-de-janeiro,san-francisco,seoul,wellington")
   .split(",")
   .map((id) => placeCalled(id.trim()));
 const model = process.env.WEATHER_MODEL;
@@ -20,6 +20,7 @@ export const POTS: PotKind[] = [
     name: "Meander",
     line: "Played by the weather, somewhere far away.",
     place: place.name,
+    page: "meander",
     source: (table) =>
       new Weather(table, { place, ...(replay ? replayed(replay, speed, table.now()) : { load: (p) => forecast(p, model) }) }),
   })),

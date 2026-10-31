@@ -15,7 +15,7 @@ const drift = n(coloured(stack(chord, "8".add(root)))).vib(0.3).vibmod(style.tap
   .s("gm_string_ensemble_1").attack(2.5).decay(2).sustain(0.7).release(5)
   .lpf(broth.warmth.range(2400, 700).add(perlin.slow(4).mul(700)))
   .pan(perlin.slow(8).range(0.35, 0.65))
-  .room(0.85).roomsize(8)
+  .room(wet(0.85)).roomsize(wide(8))
   .gain(chosen(drifting, 0.07).sub(bed).mul(drifts).add(bed).add(form.strip.mul(0.05)))`,
   },
   moody: {
@@ -31,7 +31,7 @@ const moody = only(palette.keys.fmap(k => k === 5), only(palette.chords.fmap(c =
   .lpf(broth.warmth.range(1400, 600)).lpq(2)
   .phaser(0.25).phaserdepth(0.5)
   .delay(0.35).delaytime(0.5).delayfeedback(0.45)
-  .room(0.5)
+  .room(wet(0.5))
   .gain(chosen(share('keys', 'moody'), 0.05))`,
   },
   acid: {
@@ -113,7 +113,7 @@ const glide = only(palette.lead.fmap(l => l === 1), only(palette.psyVoice.fmap(v
   .phaser(0.2).phaserdepth(0.6)
   .delay(0.45).delaysync(3 / 16).delayfeedback(broth.strangeness.range(0.4, 0.65))
   .pan(sine.slow(16).range(0.3, 0.7))
-  .room(0.7).roomsize(6)
+  .room(wet(0.7)).roomsize(wide(6))
   .gain(chosen(share('lead', 'psy'), 0.06).mul(palette.psyVoice.fmap(v => v === 2 ? 0.7 : 1)))`,
   },
   dub: {
@@ -129,7 +129,7 @@ const dub = only(palette.keys.fmap(k => k === 7), only(palette.chords.fmap(c => 
   .lpf(sine.slow(32).range(500, 2600)).lpq(3)
   .hpf(250)
   .delay(0.6).delaytime(0.38).delayfeedback(0.7)
-  .room(0.6).roomsize(6)
+  .room(wet(0.6)).roomsize(wide(6))
   .gain(chosen(share('keys', 'dub'), 0.09))`,
   },
   house: {
@@ -170,7 +170,7 @@ const glass = only(palette.lead.fmap(l => l === 2), n(coloured("{0 4 2 7 1 4}%8"
   .decay(0.5).sustain(0).release(0.8)
   .delay(0.3).delaytime(0.3).delayfeedback(0.4)
   .pan(perlin.range(0.25, 0.75))
-  .room(0.6)
+  .room(wet(0.6))
   .gain(chosen(share('lead', 'glass'), 0.07))`,
   },
   roller: {
@@ -214,7 +214,7 @@ const tune = n(coloured(sung.superimpose(x => x.add(-7).late(0.5).degradeBy(0.5)
   .s("square").attack(0.01).decay(0.4).sustain(0.4).release(0.6)
   .lpf(macro.wear.range(2200, 1100))
   .delay(0.25).delaysync(3 / 16).delayfeedback(0.3)
-  .room(0.3)
+  .room(wet(0.3))
   .gain(melodic(0.05).mul(form.beat).mul(part(macro.homely, 1)))`,
   },
   pluck: {
@@ -229,7 +229,7 @@ const pluck = n(coloured(sung))
   .lpf(broth.warmth.range(4500, 2000))
   .delay(0.35).delaysync(3 / 16).delayfeedback(broth.strangeness.range(0.3, 0.55))
   .pan(perlin.range(0.35, 0.65))
-  .room(0.5)
+  .room(wet(0.5))
   .gain(melodic(0.05).mul(form.beat).mul(part(macro.glassy, 1)))`,
   },
   stab: {
@@ -250,7 +250,7 @@ const stab = n(coloured(over(played(beats))))
 };
 export const REGION_PART_NAMES = Object.keys(REGION_PARTS);
 
-export const partCode = (name: string) => `${REGION_PARTS[name].code.trim()}\n${name}`;
+const partCode = (name: string) => `${REGION_PARTS[name].code.trim()}\n${name}`;
 
 export const partSource = (name: string) => REGION_PARTS[name].code.trim();
 

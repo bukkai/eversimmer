@@ -5,6 +5,7 @@ import { DOOR_PATH, POTS_PATH, WS_PATH, type ClientMessage, type Listing, type L
 import { now } from "./pot";
 import { serveClient, serveSource } from "./static";
 import { report, Stats } from "./stats";
+import { statsPage } from "./statspage";
 import { send, Table, type PotKind, type Shared } from "./table";
 
 const HEARTBEAT_MS = 30_000;
@@ -55,7 +56,7 @@ export function potServer({ pots, soon = [], stats: statsDir, statsKey, ...share
       res.end(JSON.stringify(listings));
       return;
     }
-    if (path === "/" && !shared.devControls) {
+    if (path === "/") {
       void serveClient("/home.html", res);
       return;
     }
@@ -67,15 +68,17 @@ export function potServer({ pots, soon = [], stats: statsDir, statsKey, ...share
         res.end("Not found\n");
         return;
       }
-      res.writeHead(200, { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" });
-      res.end(report(stats.days(), Math.min(Number(query.get("days")) || 7, 366)));
+      const detail = Math.min(Number(query.get("days")) || 7, 366);
+      const page = (req.headers.accept ?? "").includes("text/html");
+      res.writeHead(200, { "content-type": `text/${page ? "html" : "plain"}; charset=utf-8`, "cache-control": "no-store" });
+      res.end(page ? statsPage(stats.days(), detail, key) : report(stats.days(), detail));
       return;
     }
     if (path === "/source") {
       serveSource(res);
       return;
     }
-    serveClient(req.url ?? "/", res, (path) => doorOf(tables.get(path === "/" ? home : path.slice(1))));
+    serveClient(req.url ?? "/", res, (path) => doorOf(tables.get(path.slice(1))));
   });
 
   const wss = new WebSocketServer({ noServer: true, maxPayload: 64 * 1024 });

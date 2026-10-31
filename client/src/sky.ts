@@ -43,12 +43,13 @@ export function showSky(page: Sky | undefined) {
 export function setSky(next: Sky) {
   sky = next;
   heardAt = Date.now();
+  tint = next.tint ? rgbOf(next.tint) : undefined;
+  const listen = document.getElementById("listen");
+  if (next.tint) listen?.style.setProperty("--place-tint", next.tint);
+  else listen?.style.removeProperty("--place-tint");
   $("listen-place").textContent = next.place;
   const said = next.weather ? capitalise(next.weather.conditions) : "Listening for the weather…";
   $("listen-conditions").textContent = said;
-  $("credit").hidden = false;
-  $<HTMLAnchorElement>("credit-link").href = next.credit.url;
-  $("credit-link").textContent = next.credit.name;
   const line = $("sky-line");
   line.hidden = false;
   line.textContent = `${next.place}, ${localTime(next.at)} · ${next.weather?.conditions ?? "no weather yet"}${next.pace > 1 ? ` · replay at ${Math.round(next.pace)}×` : ""}`;
@@ -81,6 +82,15 @@ const NIGHT_LOW: Rgb = [28, 40, 64];
 const DUSK_LOW: Rgb = [232, 150, 102];
 const GREY_DAY: Rgb = [150, 158, 166];
 const GREY_NIGHT: Rgb = [36, 40, 47];
+const TINT_TOP = 0.08;
+const TINT_LOW = 0.13;
+const TINT_CLOUD = 0.08;
+let tint: Rgb | undefined;
+const rgbOf = (hex: string): Rgb | undefined => {
+  const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
+  return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : undefined;
+};
+const tinted = (rgb: Rgb, share: number) => (tint ? mix(rgb, tint, share) : rgb);
 
 const isSnow = (code: number) => (code >= 71 && code <= 77) || code === 85 || code === 86;
 const isFog = (code: number) => code === 45 || code === 48;
@@ -104,8 +114,8 @@ function draw(t: number) {
   const cloud = weather.cloud / 100;
   const dusk = Math.max(0, 1 - Math.abs(day - 0.5) * 2.4) * (1 - cloud * 0.8);
   const grey = mix(GREY_NIGHT, GREY_DAY, day);
-  const top = mix(mix(NIGHT_TOP, DAY_TOP, day), grey, cloud * 0.85);
-  const low = mix(mix(mix(NIGHT_LOW, DAY_LOW, day), DUSK_LOW, dusk), grey, cloud * 0.75);
+  const top = tinted(mix(mix(NIGHT_TOP, DAY_TOP, day), grey, cloud * 0.85), TINT_TOP);
+  const low = tinted(mix(mix(mix(NIGHT_LOW, DAY_LOW, day), DUSK_LOW, dusk), grey, cloud * 0.75), TINT_LOW);
   const gradient = ctx.createLinearGradient(0, 0, 0, h);
   gradient.addColorStop(0, css(top));
   gradient.addColorStop(1, css(low));
@@ -139,7 +149,7 @@ function draw(t: number) {
 
   const drift = (t / 1000) * (0.004 + weather.wind / 4000);
   const many = Math.round(cloud * CLOUDS.length);
-  const shade = mix(mix([60, 66, 78], [250, 250, 252], day), grey, cloud * 0.6);
+  const shade = tinted(mix(mix([60, 66, 78], [250, 250, 252], day), grey, cloud * 0.6), TINT_CLOUD);
   for (const c of CLOUDS.slice(0, many)) {
     const x = (((c.x + drift * c.speed) % 1.4) + 1.4) % 1.4 - 0.2;
     for (let i = 0; i < 4; i++) {

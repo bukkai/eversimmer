@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eversimmer FM · Meander</title>
+  <link rel="stylesheet" href="/src/base.css" />
+  <link rel="stylesheet" href="/src/meander.css" />
+  <link rel="stylesheet" href="/src/desk.css" />
+</head>
+
+<body>
+  <section id="listen">
+    <canvas id="sky" aria-hidden="true"></canvas>
+    <pre id="listen-code" class="code" aria-hidden="true"></pre>
+    <header class="where">
+      <a class="station" href="/">Eversimmer FM · <span class="pot-name">Meander</span></a>
+      <nav id="listen-places" class="places" aria-label="Places" hidden></nav>
+    </header>
+    <div class="over">
+      <h1 id="listen-place">The weather</h1>
+      <p id="listen-time" class="when"></p>
+      <p id="listen-conditions" class="conditions"></p>
+      <button id="listen-button">Tap to listen</button>
+      <p id="listen-note" class="note" aria-live="polite"></p>
+    </div>
+    <aside id="listen-inputs" class="inputs" aria-label="What the music is played by"></aside>
+  </section>
+
+  <footer class="mono">
+    <p id="listen-stats" class="stats"></p>
+    <a href="/source">source</a>
+    · <a href="/credits.html" target="_blank" rel="noopener">credits</a>
+    · <a href="/privacy.html" target="_blank" rel="noopener">privacy</a>
+  </footer>
+
+  <!-- the test tools, with the dev controls on -->
+  <button id="desk-toggle" class="desk-toggle" aria-controls="desk" aria-expanded="false" hidden>Desk</button>
+  <aside id="desk" class="drawer" aria-label="Test tools" hidden>
+    <section class="card">
+      <!-- include readouts -->
+    </section>
+
+    <!-- include desk -->
+  </aside>
+
+  <script type="module" src="/src/meander.ts"></script>
+</body>
+
+</html>

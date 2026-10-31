@@ -1,6 +1,7 @@
 import { blockInfo, FILLS, nextTrack, paletteAt, sectionAt, type Section } from "../../shared/form";
 import { AXES, REGIONS, type MapAxis } from "../../shared/map";
 import { describePalette, describeStyle, styleWeights } from "../../shared/palette";
+import { SKIES } from "../../shared/skies";
 import { BROTH_KEYS, BROTH_RANGES, RESTING_BROTH, type Broth, type BrothKey, type PotMap } from "../../shared/types";
 import { $ } from "./dom";
 import { currentCycle, currentStone, getForm, getKey, getTimeShift, secondsUntil, tidesNow } from "./engine";
@@ -101,6 +102,18 @@ $("travel").addEventListener("change", (e) =>
   send({ t: "dev:travel", ms: Number((e.target as HTMLSelectElement).value) * 3_600_000 }),
 );
 keySelect.addEventListener("change", () => send({ t: "dev:key", key: keySelect.value }));
+const pretend = $<HTMLSelectElement>("pretend");
+for (const [id, sky] of Object.entries(SKIES)) pretend.append(new Option(sky.name, id));
+let chosen: string | undefined;
+pretend.addEventListener("change", () => {
+  chosen = pretend.value;
+  send({ t: "dev:sky", sky: chosen });
+});
+export function showPretend(sky: string | undefined) {
+  $("pretend-row").hidden = false;
+  if (chosen !== undefined && chosen !== (sky ?? "")) send({ t: "dev:sky", sky: chosen });
+  pretend.value = chosen ?? sky ?? "";
+}
 
 $("play-code").addEventListener("click", () =>
   send({ t: "dev:course", code: code.value, note: "from the course editor" }),

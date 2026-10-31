@@ -12,7 +12,7 @@ export type Reading = Hour & {
 
 export type Dimension = keyof MoodTargets;
 
-export function ramp(x: number, ...points: [number, number][]) {
+function ramp(x: number, ...points: [number, number][]) {
   if (x <= points[0][0]) return points[0][1];
   for (let i = 1; i < points.length; i++) {
     const [x1, y1] = points[i];
@@ -29,7 +29,7 @@ export const haze = (r: Reading) => Math.max(ramp(r.visibility, [300, 1], [1000,
 const smallHours = (r: Reading) => Math.max(ramp(r.hour, [0, 0.6], [3, 1], [6, 0]), ramp(r.hour, [22, 0], [24, 0.6]));
 export const felt = (r: Reading) => Math.max(r.wind, r.gusts * 0.7);
 const clearNight = (r: Reading) => (1 - r.day) * (1 - r.cloud / 100);
-export const moonlit = (r: Reading) => r.moon * clearNight(r);
+const moonlit = (r: Reading) => r.moon * clearNight(r);
 
 export const PULL: Record<Dimension, (r: Reading) => number> = {
   energy: (r) => ramp(felt(r), [0, -0.4], [15, 0], [40, 0.6], [70, 1]),

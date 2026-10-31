@@ -10,6 +10,8 @@
     "noEmit": true,
     "skipLibCheck": true,
     "isolatedModules": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "types": [
       "node"
     ]

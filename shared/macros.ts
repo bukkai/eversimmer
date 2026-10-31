@@ -4,7 +4,7 @@ import type { Style } from "./palette";
 import { macroAt } from "./presets";
 import { STILL_AIR, type Air, type Broth, type BrothKey } from "./types";
 
-export type MacroSource = `broth.${BrothKey}` | `style.${Style}` | `genre.${string}` | "genres" | `air.${keyof Air}`;
+type MacroSource = `broth.${BrothKey}` | `style.${Style}` | `genre.${string}` | "genres" | `air.${keyof Air}`;
 
 export const MACROS = {
   drive: {

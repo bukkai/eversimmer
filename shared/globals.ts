@@ -37,7 +37,7 @@ export function courseGlobals<P>(signal: (fn: (t: number) => number) => P, from:
     },
     genre,
     form: formSignals(signal, from.moment, from.position),
-    palette: paletteSignals(signal, from.palette, from.tides),
+    palette: paletteSignals(signal, from.palette, from.tides, from.scale),
     style,
     macro,
     ...courseHelpers(genre, style, macro, shareOf, () => globalThis),

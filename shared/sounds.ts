@@ -1,4 +1,3 @@
-export const SOUNDFONT_URL = "https://felixroos.github.io/webaudiofontdata/sound";
 export const DRUM_MACHINES_URL = "https://raw.githubusercontent.com/felixroos/dough-samples/main/tidal-drum-machines.json";
 
 type Instrument = { about: string; level: number };

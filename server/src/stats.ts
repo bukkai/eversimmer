@@ -24,7 +24,7 @@ export type Day = {
   languages: Record<string, number>;
 };
 
-export type Arrival = { referrer?: string; userAgent?: string; language?: string };
+type Arrival = { referrer?: string; userAgent?: string; language?: string };
 
 type Here = { pots: Map<string, number>; since: number; left?: { pot: string; at: number }; timer?: NodeJS.Timeout };
 type Open = { day: string; salt: string; seen: string[]; seenPots: Record<string, string[]>; counts: Day };

@@ -67,7 +67,7 @@ export function weightsAt(at: MapPosition) {
   return weighed.weights;
 }
 
-export function regionWeights(at: MapPosition): Record<string, number> {
+function regionWeights(at: MapPosition): Record<string, number> {
   const d2 = REGIONS.map((r) => distance(at, r.at) ** 2);
   const nearest = Math.min(...d2);
   const k = d2.map((d) => Math.exp(-(d - nearest) / REACH ** 2));
@@ -87,7 +87,7 @@ export function nearestRegions(at: MapPosition, count = 2) {
 }
 
 export const BEATS_PER_CYCLE = 4;
-export const cpsFor = (region: Region) => region.bpm / 60 / BEATS_PER_CYCLE;
+const cpsFor = (region: Region) => region.bpm / 60 / BEATS_PER_CYCLE;
 export const cpsAt = (at: MapPosition) => cpsFor(nearestRegions(at, 1)[0].region);
 
 export const GENRE_NAMES = [...AXES, ...REGIONS.map((r) => r.id)];

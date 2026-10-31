@@ -11,7 +11,7 @@ const MAX_INGREDIENTS = 12;
 const MAX_CREDITS = 6;
 const ONE_VOICE = 0.3;
 
-export type PantryRules = { oneVoice: number; stack: boolean };
+type PantryRules = { oneVoice: number; stack: boolean };
 const PEOPLE: PantryRules = { oneVoice: ONE_VOICE, stack: true };
 
 export class Pantry {

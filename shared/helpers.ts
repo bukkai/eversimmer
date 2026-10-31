@@ -18,7 +18,7 @@ type Strudel = {
   s(pattern: unknown): Sig;
   stack(...patterns: unknown[]): Sig;
   seq(...steps: unknown[]): Sig;
-  palette: { swing: Sig; root: Sig; colour: Sig; bells: Sig; lead: Sig };
+  palette: { swing: Sig; root: Sig; colour: Sig; bells: Sig; lead: Sig; space: Sig };
   broth: { scale: Sig };
 };
 
@@ -39,6 +39,8 @@ export const HELPER_DOCS: Record<string, string> = {
   unlessHouse: "unlessHouse(share): 1, falling to 1 - share where the pot is in deep house; for the tones deep house leaves out, so its beat carries it",
   melodic: "melodic(level): how far the melody style's lead plays, at full 'level' where that style leads; 0 beside a bell motif where the music carries one melody (macro.focus) and beside any lead the track chose (palette.lead)",
   besideLofi: "besideLofi(playing): 1, but 0 in lo-fi while 'playing' (a 0 … 1 signal) is 1; lo-fi carries one melody at a time",
+  wet: "wet(level): a room's wetness for .room(), 'level' (a number or signal) where the track's room is the stone's, drier in a smaller one and wetter in a larger (palette.space), like .room(wet(0.6))",
+  wide: "wide(size): a room's size for .roomsize(), 'size' where the track's room is the stone's, smaller or larger with palette.space, like .roomsize(wide(6))",
   coloured: "coloured(steps): scale steps over the track's chords, with the sharps and flats a coloured chord asks for (a dominant on V in minor, a borrowed minor iv); last before n(...), on steps with the root already added, like n(coloured(chord.add(palette.root)))",
 };
 export const HELPER_NAMES = Object.keys(HELPER_DOCS);
@@ -58,6 +60,10 @@ export function courseHelpers(
   const melody = style.melody as Sig;
   const swell = (value: Sig, from: number, to: number, level: number) =>
     value.fmap((x) => (x <= from ? 0 : Math.min(1, (x - from) / (to - from)) * level));
+  const byRoom = (x: number | Sig, f: (x: number, space: number) => number) => {
+    const { palette } = strudel() as Strudel;
+    return typeof x === "number" ? palette.space.fmap((space) => f(x, space)) : x.fmap((v) => (space: number) => f(v, space)).appLeft(palette.space);
+  };
   return {
     swell,
     part: (weight: Sig, level: number) => weight.fmap((w) => Math.min(1, w * 1.5) * level),
@@ -101,6 +107,8 @@ export function courseHelpers(
         .mul(focus.mul(motif).fmap((x) => 1 - x))
         .mul(palette.lead.fmap((l) => (l > 0 ? 0 : 1)));
     },
+    wet: (level: number | Sig) => byRoom(level, (x, space) => (space < 0 ? x * (1 + 0.45 * space) : x + (1 - x) * 0.5 * space)),
+    wide: (size: number | Sig) => byRoom(size, (x, space) => Math.min(10, Math.max(0.5, x + 4 * space))),
     coloured: (steps: Sig) => {
       const { palette, broth } = strudel() as Strudel;
       return steps

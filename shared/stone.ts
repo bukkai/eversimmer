@@ -25,7 +25,7 @@ const keysAs = (i, level, sound) => sound(palette.keys.segment(1).fmap(k => k ==
   .late(perlin.range(0, 0.025))
   .velocity(perlin.slow(4).range(0.7, 0.9).add(rand.range(0, 0.1)))
   .delay(broth.strangeness.range(0.1, 0.55)).delaytime(0.4).delayfeedback(broth.strangeness.range(0.2, 0.65))
-  .room(macro.fog.range(0.5, 0.85)).roomsize(macro.wear.range(4, 2).add(macro.fog.mul(5)))
+  .room(wet(macro.fog.range(0.5, 0.85))).roomsize(wide(macro.wear.range(4, 2).add(macro.fog.mul(5))))
   .shape(style.tape.mul(0.35))
   .gain(part(macro.keys, 0.1 * level).mul(form.strip.mul(0.4).add(1)).mul(thin).mul(unless(macro.muted, 0.45)))
 const keys = palette.chords.fmap(c => 1 - c).mul(here(macro.keys)).pick([silence, stack(
@@ -66,7 +66,7 @@ const pad = n("[0,4]".add(root))
   .attack(2).release(4)
   .lpf(broth.warmth.range(1600, 400).add(sine.slow(8).mul(broth.strangeness.range(0, 1400))).mul(palette.pad.fmap(p => p === 1 ? 0.6 : 1)))
   .lpq(broth.strangeness.range(1, 6))
-  .room(macro.fog.range(0.8, 0.95)).roomsize(macro.fog.range(7, 10))
+  .room(wet(macro.fog.range(0.8, 0.95))).roomsize(wide(macro.fog.range(7, 10)))
   .gain(palette.pad.fmap(p => [0.07, 0.03, 0][p]).mul(form.pad).mul(thin))
 
 // dissonant extensions fade in with tension
@@ -118,7 +118,7 @@ const ring = (notes, up) => notes
   .pan(rand.sub(0.5).mul(broth.strangeness).add(0.5))
   .delay(0.4).delaytime(0.6).delayfeedback(broth.strangeness.range(0.3, 0.6))
   .lpf(macro.wear.range(9000, 2800).mul(unless(macro.veiled, 0.6)))
-  .room(macro.fog.range(0.6, 0.9))
+  .room(wet(macro.fog.range(0.6, 0.9)))
 const bellsGain = level => beside(macro.focus, form.theme).mul(level).mul(unless(macro.veiled, 0.4))
 // the motif sings in the track's own voice, the Rhodes and guitars an octave below the rest (palette.motifSound): the instrument the palette picks,
 // or a flute, or a guitar with the palm on its strings
@@ -155,7 +155,7 @@ const theme = stack(
     .attack(macro.bloom.range(0.005, 0.6)).decay(1.8).sustain(0).release(1.5)
     .lpf(broth.warmth.range(3000, 1200))
     .delay(0.3).delaytime(0.375).delayfeedback(0.35)
-    .room(macro.fog.range(0.6, 0.9)).roomsize(macro.fog.range(5, 9))
+    .room(wet(macro.fog.range(0.6, 0.9))).roomsize(wide(macro.fog.range(5, 9)))
     .gain(part(macro.homely, 0.08)),
   themeNotes.mask(here(macro.glassy))
     .s("sine").fm(2).fmh(3.5).decay(0.7).sustain(0).release(1)
@@ -186,6 +186,27 @@ const worn = n(coloured(over("<[0 ~ ~ 2 ~ ~ 4 ~] [~ ~ ~ ~ 2 ~ ~ ~] [0 ~ ~ 2 ~ ~ 
   .lpf(1400).vib(0.6).vibmod(0.25).shape(0.25)
   .room(0.6)
   .gain(part(style.tape, 0.05).mul(form.beat).mul(beside(macro.focus, bellMotif)).mul(unless(macro.muted, 1)))
+
+// the pot's own voice (palette.voice), which no genre chooses: the track's melody now and then,
+// eight bars on and eight off, thinner in a quiet room, stepping aside for the theme and, where the
+// music carries one melody, for the bells' motif
+const voiced = v => palette.voice.fmap(x => x === v)
+const ownNotes = n(coloured(sung)).mask("<0!8 1!8>").mask(besideTheme)
+  .degradeBy(broth.density.range(0.6, 0.3))
+const own = (v, up) => only(voiced(v), ownNotes)
+  .scale(broth.scale).transpose(up)
+  .pan(perlin.slow(8).range(0.35, 0.65))
+  .delay(0.3).delaytime(0.45).delayfeedback(broth.strangeness.range(0.25, 0.5))
+  .room(wet(macro.fog.range(0.5, 0.85))).roomsize(wide(4))
+const ownGain = level => beside(macro.focus, bellMotif).mul(level).mul(unless(macro.veiled, 0.4)).mul(unless(macro.muted, 0.6))
+const ownVoice = stack(
+  own(1, 12).s("gm_koto").decay(1.2).sustain(0).release(0.6).gain(ownGain(0.06)),
+  own(2, 0).s("gm_orchestral_harp").decay(1.8).sustain(0).release(1).gain(ownGain(0.07)),
+  own(3, 12).s("gm_muted_trumpet").attack(0.04).decay(0.6).sustain(0.4).release(0.5).lpf(macro.wear.range(4000, 2000)).gain(ownGain(0.045)),
+  own(4, 12).s("gm_shakuhachi").attack(0.08).decay(0.6).sustain(0.5).release(0.9).gain(ownGain(0.05)),
+  own(5, 12).s("gm_marimba").decay(0.5).sustain(0).release(0.3).gain(ownGain(0.06)),
+  own(6, 12).s("gm_pan_flute").attack(0.07).decay(0.5).sustain(0.5).release(0.8).gain(ownGain(0.045))
+)
 
 // generative: clicks in shifting euclidean rhythms, and metallic blips phasing against the bar,
 // fewer, softer and rounder in the quiet genres
@@ -233,6 +254,6 @@ stack(
   regions.roller, regions.lead, regions.rolling, regions.offbeat, regions.psybeat, regions.glide,
   stabs, pad, tense, bass, bassline,
   drums.kick, drums.pushedKick, drums.hats, drums.fastHats, drums.openHats, drums.snare, drums.clap, drums.ghosts, drums.rim,
-  drums.tabla, drums.heart, drums.fourFloor, drums.roll, drums.riser, drums.crash, drums.fills, drums.ticks, bells, theme, dust, crackle, worn, regions.tune, regions.pluck, regions.stab, clicks, metal, ...voices
+  drums.tabla, drums.heart, drums.fourFloor, drums.roll, drums.riser, drums.crash, drums.fills, drums.ticks, bells, theme, dust, crackle, worn, ownVoice, regions.tune, regions.pluck, regions.stab, clicks, metal, ...voices
 )
 `.trim();

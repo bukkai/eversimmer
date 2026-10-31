@@ -28,8 +28,8 @@ const VARIABLES = {
 } as const;
 const FALLBACK: Omit<Hour, "at"> = { temperature: 10, precipitation: 0, code: 0, pressure: 1013, cloud: 50, wind: 0, gusts: 0, day: 0, light: 0, visibility: 20_000 };
 
-export const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
-export const HISTORY_URL = "https://historical-forecast-api.open-meteo.com/v1/forecast";
+const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
+const HISTORY_URL = "https://historical-forecast-api.open-meteo.com/v1/forecast";
 
 export function query(base: string, place: Place, stretch: Record<string, string | number | undefined>) {
   const params = new URLSearchParams({

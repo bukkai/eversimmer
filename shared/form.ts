@@ -2,9 +2,9 @@ import { clamp } from "./numbers";
 import { breathingAt, REGIONS, weightsAt, type MapPosition } from "./map";
 import { BELLS, DEFAULT_PALETTE, KEY_ROLES, mutate, type Palette } from "./palette";
 
-export const SEAMS: Seam[] = ["gap", "mix", "drop"];
+const SEAMS: Seam[] = ["gap", "mix", "drop"];
 
-export type SectionKind = "intro" | "groove" | "breakdown" | "build" | "outro";
+type SectionKind = "intro" | "groove" | "breakdown" | "build" | "outro";
 export type Seam = "gap" | "mix" | "drop";
 
 export type Section = {
@@ -20,7 +20,7 @@ export type Section = {
   rest?: number;
 };
 
-export type Block = {
+type Block = {
   role?: number;
   bells?: number;
   hats: number;
@@ -31,7 +31,7 @@ export type Block = {
 };
 
 export const FILLS = ["no fill", "a snare fill", "a kick break", "a tom fill", "a noise swell"];
-export const BLOCK = 16;
+const BLOCK = 16;
 const THEME_BARS = 4;
 const THEME_EVERY = 8;
 
@@ -59,7 +59,7 @@ export const FORM_REST: FormValues = {
   strip: 0, lift: 0, drop: 0, gap: 0, hats: 1, pad: 1, bass: 0, fill: 0, theme: 0, intro: 0, outro: 0, bare: 0, fade: 1,
 };
 
-export type FormSignals = FormValues & {
+type FormSignals = FormValues & {
   beat: number;
   rush: number;
 };
@@ -139,7 +139,7 @@ export function formAt(form: Section[], cycle: number): FormValues {
   }
 }
 
-export type TrackPlan = {
+type TrackPlan = {
   opening?: Seam;
   palette: Palette;
   theme?: boolean;
@@ -246,7 +246,7 @@ export function nextSectionStart(form: Section[], cycle: number) {
   return form.map((s) => s.cycle).find((c) => c >= cycle);
 }
 
-export function formHere(v: FormValues, at: MapPosition): FormSignals {
+function formHere(v: FormValues, at: MapPosition): FormSignals {
   const w = weightsAt(at);
   let arc = 0;
   let rush = 0;

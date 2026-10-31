@@ -6,6 +6,7 @@ const TICK_MS = 50;
 const LOOKAHEAD_MS = 200;
 const MAX_AHEAD_MS = 1000;
 const EASE_MS = 0.5;
+const CHUNK_CYCLES = 0.5;
 
 type Trigger = (hap: Hap, deadline: number, duration: number, cps: number, t: number) => void;
 type Scheduled = { from: number; id: string; pattern: Pattern };
@@ -81,29 +82,30 @@ export class SharedScheduler {
     const nowMs = serverNow();
     const nowCycle = cycleAt(tempo, nowMs);
     const latencyMs = Math.max(0, (this.ctx.currentTime - this.audioTimeAt(nowMs)) * 1000);
-    const end = cycleAt(tempo, nowMs + this.ahead + latencyMs);
+    const needed = cycleAt(tempo, nowMs + this.ahead + latencyMs);
     let begin = this.lastEnd ?? nowCycle;
-    if (begin < nowCycle - 0.25 || begin > end) begin = nowCycle;
-    if (end <= begin) return;
-
-    this.late = 0;
-    this.courses.forEach((course, i) => {
-      const b = Math.max(begin, course.from);
-      const e = Math.min(end, this.courses[i + 1]?.from ?? Infinity);
-      if (e <= b) return;
-      try {
-        this.play(course.pattern, b, e, tempo);
-      } catch (err) {
-        this.onQueryError(course.id, err);
-      }
-    });
-    this.lastEnd = end;
+    if (begin < nowCycle - 0.25 || begin > needed + CHUNK_CYCLES + 0.25) begin = nowCycle;
+    if (needed > begin) {
+      const end = needed + CHUNK_CYCLES;
+      this.courses.forEach((course, i) => {
+        const b = Math.max(begin, course.from);
+        const e = Math.min(end, this.courses[i + 1]?.from ?? Infinity);
+        if (e <= b) return;
+        try {
+          this.play(course.pattern, b, e, tempo);
+        } catch (err) {
+          this.onQueryError(course.id, err);
+        }
+      });
+      this.lastEnd = end;
+    }
     this.pace(gap, performance.now() - started);
   }
 
   private pace(gap: number, spent: number) {
     let need = 2 * (Math.max(gap, TICK_MS) + spent);
     if (this.late > 0) need = Math.max(need, this.ahead * 1.5);
+    this.late = 0;
     this.ahead =
       need > this.ahead ? Math.min(MAX_AHEAD_MS, need) : Math.max(LOOKAHEAD_MS, this.ahead - EASE_MS);
   }

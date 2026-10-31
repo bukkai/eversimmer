@@ -27,6 +27,8 @@ declare module "@strudel/web" {
   export function signal(fn: (t: number) => number): Pattern;
   export function noteToMidi(note: string): number;
   export function getAudioContext(): AudioContext;
+  export function setAudioContext(ctx: AudioContext): AudioContext;
+  export function setMaxPolyphony(voices: number): void;
   export function loadBuffer(url: string, ctx: AudioContext): Promise<AudioBuffer>;
   export const soundMap: {
     get(): Record<string, { data: { type?: string; samples?: string[] | Record<string, string[]> } } | undefined>;

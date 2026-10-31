@@ -14,6 +14,7 @@ import type { Validator } from "./validate";
 export type PotKind = PotName & PotMusic & {
   line?: string;
   place?: string;
+  page?: string;
   source: (table: SourceContext, client: Anthropic | undefined) => Source;
 };
 
@@ -37,7 +38,7 @@ export class Table {
   private breakage = new Breakage();
   private keeping: NodeJS.Timeout | undefined;
 
-  constructor(kind: PotKind, private shared: Shared) {
+  constructor(private kind: PotKind, private shared: Shared) {
     this.source = kind.source(
       {
         broadcast: (msg) => this.broadcast(msg),
@@ -153,6 +154,10 @@ export class Table {
     else if (msg.t === "dev:travel" && typeof msg.ms === "number" && Number.isFinite(msg.ms)) pot.travel(msg.ms);
     else if (msg.t === "dev:cook") void this.coder.cook("someone at the tuning desk asked for a new course");
     else if (msg.t === "dev:key" && /^[A-G][b#]?$/.test(msg.key)) pot.setKey(msg.key);
+    else if (msg.t === "dev:sky" && typeof msg.sky === "string" && this.source.pretend) {
+      this.source.pretend(msg.sky || undefined);
+      pot.arrive();
+    }
     else if (msg.t === "dev:feedback" && typeof msg.text === "string" && typeof msg.cycle === "number") {
       const text = msg.text.trim().slice(0, MAX_FEEDBACK_LENGTH);
       if (!text) return;
@@ -212,7 +217,7 @@ export class Table {
   }
 
   door(): Door {
-    return { name: this.pot.state.name, talk: !!this.source.talk, devControls: this.shared.devControls, sky: this.source.sky?.(now()) };
+    return { name: this.pot.state.name, page: this.kind.page ?? "potluck", talk: !!this.source.talk, devControls: this.shared.devControls, sky: this.source.sky?.(now()) };
   }
 
   private updatePresence() {

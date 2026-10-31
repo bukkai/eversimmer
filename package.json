@@ -13,8 +13,8 @@
     "dev": "concurrently -k -n server,client -c yellow,cyan \"npm run dev -w server\" \"npm run dev -w client\"",
     "build": "npm run build -w client",
     "start": "npm start -w server",
-    "typecheck": "tsc --noEmit -p client && tsc --noEmit -p server",
-    "test": "npm test -w server",
+    "typecheck": "tsc --noEmit -p client && tsc --noEmit -p client/test && tsc --noEmit -p server",
+    "test": "npm test -w server && npm test -w client",
     "check": "npm run typecheck && npm test",
     "stats": "npm run stats -w server --"
   },

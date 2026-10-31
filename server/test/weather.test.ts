@@ -4,9 +4,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { seeded } from "../../shared/numbers";
-import { accented, choosePalette, DRUMKITS, homeKey } from "../../shared/palette";
+import { accented, choosePalette, DEFAULT_PALETTE, DRUMKITS, homeKey, paletteSignals, VOICES } from "../../shared/palette";
 import { settingOf } from "../../shared/presets";
-import { RESTING_BROTH } from "../../shared/types";
+import { SKIES } from "../../shared/skies";
+import { modeFor, RESTING_BROTH } from "../../shared/types";
 import { Pantry } from "../src/pantry";
 import type { SourceContext } from "../src/source";
 import { between, Weather } from "../src/weather";
@@ -318,6 +319,53 @@ test("Meander's six are never in the same key, and each favours its own drums", 
 
 test("an accent adds to the weather's lean and stays within reach", () => {
   const accent = { fifths: 0, lean: { tempo: 0.5, swing: -0.3 } };
-  assert.deepEqual(accented({ tempo: 0.8, bright: 0.4 }, accent), { tempo: 1, swing: -0.3, bright: 0.4, favour: undefined });
+  assert.deepEqual(accented({ tempo: 0.8, bright: 0.4 }, accent), { tempo: 1, swing: -0.3, bright: 0.4, favour: undefined, pace: undefined, mode: undefined, voice: undefined, space: undefined });
   assert.deepEqual(accented({ tempo: 0.8 }), { tempo: 0.8 });
+});
+
+test("each of Meander's six rests in its own mode and pace, as far as the genre lets it", () => {
+  const palette = (id: string) => choosePalette({ day: 0.3, season: 0.5 }, undefined, {}, seeded(3), false, accented({}, placeCalled(id).accent));
+  assert.equal(modeFor(0, {}, undefined, palette("marrakesh").mode), "phrygian");
+  assert.equal(modeFor(0, {}, undefined, palette("rio-de-janeiro").mode), "mixolydian");
+  assert.equal(modeFor(0.4, {}, undefined, palette("wellington").mode), "lydian");
+  assert.equal(modeFor(-0.4, {}, undefined, palette("wellington").mode), "major");
+  assert.equal(modeFor(1, {}), "major");
+  const rootOf = (scale: string) => paletteSignals((fn) => fn, () => ({ ...DEFAULT_PALETTE, prog: 3, mode: 5 }), () => ({ day: 0, season: 0 }), () => scale).root(2);
+  assert.equal(rootOf("C:lydian"), 1);
+  assert.equal(rootOf("C:major"), 3);
+  assert.equal(modeFor(0.4, {}, undefined, palette("marrakesh").mode), "aeolian");
+  assert.equal(modeFor(0, { lofi: 1 }, undefined, palette("marrakesh").mode), "aeolian");
+  assert.equal(palette("bergen").mode, undefined);
+  assert.equal(modeFor(0, {}, undefined, palette("bergen").mode), "dorian");
+  const tempo = (id: string) => {
+    const random = seeded(5);
+    const tempos = Array.from({ length: 400 }, () => choosePalette({ day: 0.3, season: 0.5 }, undefined, {}, random, false, accented({}, placeCalled(id).accent)).tempo);
+    return tempos.reduce((a, b) => a + b) / tempos.length;
+  };
+  assert.ok(Math.abs(tempo("seoul") - tempo("marrakesh") - 0.07) < 0.01);
+  assert.equal(palette("seoul").voice, VOICES.indexOf("koto"));
+  assert.ok(palette("marrakesh").space! < -0.6 && palette("san-francisco").space! > 0.6);
+  assert.equal(palette("bergen").voice, undefined);
+});
+
+test("the desk can lay a sky over the place's own, even with no weather in, and take it off again", async () => {
+  const now = START + 2 * 24 * HOUR;
+  const table: SourceContext = { broadcast: () => {}, tell: () => {}, now: () => now };
+  const weather = new Weather(table, { place: bergen, load: async () => Promise.reject(new Error("down")), pollMs: 24 * HOUR });
+  try {
+    await weather.ready;
+    assert.equal(weather.targets(now).energy, RESTING_BROTH.energy);
+    weather.pretend("storm");
+    assert.equal(weather.reading(now)!.code, SKIES.storm.code);
+    assert.ok(weather.targets(now).energy > RESTING_BROTH.energy + 0.3);
+    assert.ok(weather.ingredients.some((i) => i.name === "thunder"));
+    assert.equal(weather.sky(now).pretend, "storm");
+    weather.pretend("nonsense");
+    assert.equal(weather.sky(now).pretend, "storm");
+    weather.pretend(undefined);
+    assert.equal(weather.reading(now), undefined);
+    assert.equal(weather.ingredients.length, 0);
+  } finally {
+    weather.close();
+  }
 });

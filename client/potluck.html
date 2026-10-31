@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eversimmer FM · Potluck</title>
+  <link rel="stylesheet" href="/src/base.css" />
+  <link rel="stylesheet" href="/src/desk.css" />
+  <link rel="stylesheet" href="/src/potluck.css" />
+</head>
+
+<body>
+  <section id="door">
+    <h1>Eversimmer FM</h1>
+    <p class="sub"><span class="pot-name">Potluck</span> · the stone is simmering</p>
+    <form id="join-form">
+      <input id="name" placeholder="Your name" maxlength="24" autocomplete="nickname" required />
+      <button id="join">Pull up a chair</button>
+    </form>
+  </section>
+
+  <main id="room" hidden>
+    <div class="side">
+      <section class="pot card">
+        <canvas id="pot" aria-label="The pot: the broth and its ingredients"></canvas>
+        <!-- include readouts -->
+      </section>
+
+      <!-- include desk -->
+
+      <section class="recipe card">
+        <details id="recipe-card">
+          <summary>
+            <h2>Recipe card</h2>
+            <span id="recipe-count" class="mono"></span>
+          </summary>
+          <ol id="recipe"></ol>
+        </details>
+      </section>
+    </div>
+
+    <section class="chat card">
+      <header>
+        <h2 class="pot-name">Potluck</h2>
+        <ul id="people" aria-label="In the room"></ul>
+      </header>
+      <ol id="lines" aria-live="polite"></ol>
+      <p id="notice" class="mono"></p>
+      <form id="say">
+        <input id="text" placeholder="Add something to the pot…" maxlength="500" autocomplete="off" />
+        <button>Send</button>
+      </form>
+    </section>
+  </main>
+
+  <footer class="mono">
+    <a href="/source">source</a>
+    · <a href="/credits.html" target="_blank" rel="noopener">credits</a>
+    · <a href="/privacy.html" target="_blank" rel="noopener">privacy</a>
+  </footer>
+
+  <script type="module" src="/src/potluck.ts"></script>
+</body>
+
+</html>

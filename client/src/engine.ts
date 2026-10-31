@@ -7,6 +7,8 @@ import {
   loadBuffer,
   noteToMidi,
   samples,
+  setAudioContext,
+  setMaxPolyphony,
   setTime,
   signal,
   soundMap,
@@ -56,7 +58,7 @@ function setKeyFrom(cycle: number, key: string) {
 
 const sources: CourseSources = {
   broth: () => live,
-  scale: (cycle) => scaleFor(trackKeyAt(cycle), live.valence, weightsAt(position), paletteAt(form, cycle).parent),
+  scale: (cycle) => scaleFor(trackKeyAt(cycle), live.valence, weightsAt(position), paletteAt(form, cycle).parent, paletteAt(form, cycle).mode),
   position: () => position,
   moment: (cycle) => formAt(form, cycle),
   palette: (cycle) => paletteAt(form, cycle),
@@ -68,6 +70,10 @@ Object.assign(
   globalThis,
   courseGlobals(signal, sources),
 );
+
+const phone = matchMedia("(pointer: coarse)").matches;
+const PHONE_VOICES = 48;
+if (phone) setAudioContext(new AudioContext({ latencyHint: "playback" }));
 
 const ready = initStrudel({
   prebake: () =>
@@ -164,7 +170,7 @@ function forget() {
   for (const id of layers.keys()) if (id !== "stone" && !playing.has(id)) layers.delete(id);
 }
 
-export type EngineEvents = {
+type EngineEvents = {
   onError?: (msg: string) => void;
   onBroken?: (course: string, error: string) => void;
   onAudio?: (running: boolean) => void;
@@ -225,6 +231,7 @@ export async function startEngine(e: EngineEvents = {}, ready: Promise<unknown> 
   const ctx = getAudioContext();
   const resumed = ctx.resume().catch(() => {});
   await initAudio();
+  if (phone) setMaxPolyphony(PHONE_VOICES);
   await library;
   masterBus(ctx);
   setInterval(() => {
@@ -368,9 +375,11 @@ export const lookahead = () => scheduler?.lookahead() ?? 0;
 
 export const getBroth = (): Readonly<Broth> => live;
 export const getKey = () => keyAt(currentCycle());
-export const getTrackKey = () => trackKeyAt(currentCycle());
-export const getScale = () =>
-  scaleFor(getTrackKey(), live.valence, weightsAt(position), paletteAt(form, currentCycle()).parent);
+const getTrackKey = () => trackKeyAt(currentCycle());
+export const getScale = () => {
+  const palette = paletteAt(form, currentCycle());
+  return scaleFor(getTrackKey(), live.valence, weightsAt(position), palette.parent, palette.mode);
+};
 export const currentCycle = () => (tempo.length ? cycleAt(tempo, serverNow()) : 0);
 export const getCps = () => (tempo.length ? cpsAtCycle(tempo, currentCycle()) : 0);
 export const currentCourse = () => scheduler?.courseAt(currentCycle());
@@ -382,7 +391,7 @@ const plain = (fn: (t: number) => number) => fn;
 const readable: Record<string, Record<string, (t: number) => number>> = {
   genre: genreSignals(plain, sources.position),
   form: formSignals(plain, sources.moment, sources.position),
-  palette: paletteSignals(plain, sources.palette, sources.tides),
+  palette: paletteSignals(plain, sources.palette, sources.tides, sources.scale),
   style: styleSignals(plain, sources.style),
   macro: macroSignals(plain, sources),
 };

@@ -1,6 +1,7 @@
 import { REGIONS } from "./map";
 import { borrowLate, cross, crossedKnobs, mutationFor, RULES, settingOf, sourceOf, type ChoiceKnob, type Setting } from "./presets";
 import { seeded, weighted } from "./numbers";
+import { MODES } from "./types";
 import { describeLoop, describePsy, DRONE_WORDS, DRONES, figuresAt, loopAt, psyAt } from "./song";
 
 export const DAY_TIDE_MS = 20 * 60 * 60_000;
@@ -8,10 +9,10 @@ export const SEASON_MS = 19 * 24 * 60 * 60_000;
 
 export type Tides = { day: number; season: number };
 
-export type Lean = { bright?: number; tempo?: number; swing?: number; favour?: Favour };
+export type Lean = { bright?: number; tempo?: number; swing?: number; favour?: Favour; pace?: number; mode?: string; voice?: string; space?: number };
 
-export type Favour = { keys?: Setting<"keys">[]; drums?: Setting<"drums">[]; motifSound?: Setting<"motifSound">[] };
-const FAVOURED = 3;
+type Favour = { keys?: Setting<"keys">[]; drums?: Setting<"drums">[]; motifSound?: Setting<"motifSound">[] };
+const FAVOURED = 5;
 const favoured = (lean: Lean, knob: keyof Favour, i: number) =>
   (lean.favour?.[knob] as string[] | undefined)?.some((name) => settingOf(knob, name as never) === i) ? FAVOURED : 1;
 
@@ -25,6 +26,10 @@ export function accented(lean: Lean = {}, accent?: Accent): Lean {
     tempo: sum(lean.tempo, accent.lean.tempo),
     swing: sum(lean.swing, accent.lean.swing),
     favour: accent.lean.favour ?? lean.favour,
+    pace: accent.lean.pace ?? lean.pace,
+    mode: accent.lean.mode ?? lean.mode,
+    voice: accent.lean.voice ?? lean.voice,
+    space: accent.lean.space ?? lean.space,
   };
 }
 
@@ -41,6 +46,9 @@ export type Palette = {
   motif: number;
   fifths: number;
   tempo: number;
+  mode?: number;
+  voice?: number;
+  space?: number;
   groove: number;
   swing: number;
   kit: number;
@@ -76,11 +84,11 @@ export const MOODY = settingOf("keys", "moody");
 export const DRIFT = settingOf("keys", "drift");
 export const DUB = settingOf("keys", "dub");
 export const KEY_ROLES = ["comping", "arpeggios", "held chords", "resting", "house stabs in 3-3-2"];
-export const VOICINGS = ["close sevenths", "drop voicing", "open with a ninth", "rootless", "shell", "six-nine", "in fourths"];
+const VOICINGS = ["close sevenths", "drop voicing", "open with a ninth", "rootless", "shell", "six-nine", "in fourths"];
 export const BELLS = ["scattered harp notes", "a Rhodes motif", "a guitar motif", "no bells"];
 export const GROOVES = ["laid-back", "boom-bap", "skipping", "broken"];
 export const SWINGS = [0.08, 1 / 6, 0.28];
-export const SWING_WORDS = ["nearly straight", "a light swing", "a heavy swing"];
+const SWING_WORDS = ["nearly straight", "a light swing", "a heavy swing"];
 export const KITS = ["dusty", "deep", "tight"];
 const DUSTY = { clap: "cp:0", open: "808oh" };
 const HEARD = [0.56, 0.2, 0.35];
@@ -101,8 +109,9 @@ export const DRUMKITS = [
 ];
 export const TR909_KIT = settingOf("drums", "tr909");
 export const TR606_KIT = settingOf("drums", "tr606");
-export const BASS_TONES = ["a round sine bass", "a warm triangle bass", "a plucked bass"];
+const BASS_TONES = ["a round sine bass", "a warm triangle bass", "a plucked bass"];
 export const MOTIF_SOUNDS = ["the bells' instrument", "a flute", "a muted guitar"];
+export const VOICES = ["none", "koto", "harp", "muted trumpet", "ney", "marimba", "pan flute"];
 const TEMPO_SPREAD = 0.06;
 const TEMPO_JOINED = 0.02;
 
@@ -117,7 +126,7 @@ export function trackKey(key: string, fifths: number) {
   return `${name}${octave}`;
 }
 
-export const PROGRESSIONS: number[][] = [
+const PROGRESSIONS: number[][] = [
   [0, -4, -1, -5, -2, 1, -3, -3, -2, -1, 0, 0, -4, -3, -2, -1],
   [0, 0, -2, -2, -4, -4, -3, -3, 0, 0, -2, -2, -4, -4, -3, -1],
   [0, -1, -2, -3, -4, -5, -3, -3, 0, -1, -2, -3, -4, -3, -2, -1],
@@ -127,11 +136,11 @@ export const OWN_LOOP = PROGRESSIONS.length;
 
 export const DEFAULT_PALETTE: Palette = {
   keys: 0, role: 0, voicing: 0, octave: 0, prog: 0, loop: 0, bells: 0, motif: 0, fifths: 0, tempo: 1, groove: 0, swing: 1, kit: 0,
-  drums: 0, phrase: 0, figure: 0, wow: 0.5, bright: 0.5, bassTone: 0, motifSound: 0, vinyl: 0.5, drone: -1, psy: 0,
+  drums: 0, phrase: 0, figure: 0, wow: 0.5, bright: 0.5, bassTone: 0, motifSound: 0, vinyl: 0.5, drone: -1, psy: 0, voice: 0, space: 0,
   pulse: 0, backbeat: 0, perc: 0, bassRoll: 0, lead: 0, chords: 0, pad: 0,
 };
 
-export const LINE_REST = -99;
+const LINE_REST = -99;
 const RHYTHMS = [
   [1, 0, 0, 1, 0, 1, 0, 0], [1, 0, 1, 1, 0, 0, 1, 0], [0, 0, 1, 0, 1, 0, 1, 1], [1, 0, 0, 0, 1, 1, 0, 0],
   [0, 1, 1, 0, 0, 1, 0, 0], [1, 1, 0, 1, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 1, 1, 0, 1, 0],
@@ -232,7 +241,7 @@ function bellLine(line: number[]) {
   });
 }
 
-export function lineAt(phrase: number, t: number, block = 0, bells = false) {
+function lineAt(phrase: number, t: number, block = 0, bells = false) {
   const key = `${phrase}:${lineTurn(phrase, block)}:${bells}`;
   let line = lines.get(key);
   if (!line) {
@@ -291,9 +300,10 @@ export function choosePalette(
       [1, 1.4, 1, 0.35].map((w, i) => w * again("fifths", i - 1, 0.35) * (joined && previous && Math.abs(i - 1 - previous.fifths) > 1 ? 0 : 1)),
       random,
     ) - 1;
-  const spread = (x: number) => Math.min(1 + TEMPO_SPREAD, Math.max(1 - TEMPO_SPREAD, x));
-  const free = spread(1 + TEMPO_SPREAD * (2 * random() - 1 + 0.6 * (lean.tempo ?? 0)));
-  const tempo = joined && previous ? spread(previous.tempo + TEMPO_JOINED * (2 * random() - 1) - 0.3 * (previous.tempo - 1)) : free;
+  const pace = 1 + (lean.pace ?? 0);
+  const spread = (x: number) => Math.min(pace + TEMPO_SPREAD, Math.max(pace - TEMPO_SPREAD, x));
+  const free = spread(pace + TEMPO_SPREAD * (2 * random() - 1 + 0.6 * (lean.tempo ?? 0)));
+  const tempo = joined && previous ? spread(previous.tempo + TEMPO_JOINED * (2 * random() - 1) - 0.3 * (previous.tempo - pace)) : free;
   const groove = weighted(GROOVES.map((_, i) => again("groove", i, 0.2)), random);
   const swing = weighted(knobs.swing.map((w, i) => w * Math.max(0.2, 1 + 0.6 * (i - 1) * (lean.swing ?? 0)) * again("swing", i, 0.5)), random);
   const kit = weighted(KITS.map((_, i) => again("kit", i, 0.4)), random);
@@ -323,6 +333,9 @@ export function choosePalette(
     keys, role, voicing, octave, prog, loop, bells, motif, fifths, tempo, groove, swing, kit, drums, phrase, figure,
     wow, bright: brightness, bassTone, motifSound, vinyl, drone, psy: psySeed, pulse, backbeat, perc, bassRoll, lead, chords, pad,
     parent: crossing.parent, neighbour: crossing.neighbour, borrowed,
+    ...(lean.mode !== undefined && { mode: MODES.indexOf(lean.mode) }),
+    ...(lean.voice !== undefined && { voice: VOICES.indexOf(lean.voice) }),
+    ...(lean.space !== undefined && { space: Math.max(-1, Math.min(1, lean.space + 0.3 * (random() - 0.5))) }),
   };
 }
 
@@ -368,7 +381,7 @@ const KNOB_WORDS: Record<ChoiceKnob, string> = {
 };
 const regionName = (id: string) => REGIONS.find((r) => r.id === id)?.name ?? "rest";
 
-export const describeCrossing = (p: Palette) =>
+const describeCrossing = (p: Palette) =>
   p.parent === undefined ? "" :
   `parent ${regionName(p.parent)}` +
   (p.borrowed?.length ? `, from ${regionName(p.neighbour ?? "rest")}: ${p.borrowed.map((k) => KNOB_WORDS[k]).join(", ")}` : "") +
@@ -385,7 +398,7 @@ export const describePalette = (p: Palette) =>
   `${p.chords ? "the keys rest" : p.keys >= MOODY ? KEY_SOUNDS[p.keys] : `${KEY_SOUNDS[p.keys]} ${KEY_ROLES[p.role]}`}` +
   (p.role === 3 || p.chords || p.keys >= MOODY ? "" : `, ${VOICINGS[p.voicing]}${p.octave ? `, ${p.octave > 0 ? "an octave up" : "lower"}` : ""}`) +
   `, ${(p.drone ?? -1) >= 0 ? `a drone (${DRONE_WORDS[p.drone]})` : p.prog >= OWN_LOOP ? `its own loop (${describeLoop(p.loop ?? 0, p.parent, p.neighbour)})` : `progression ${p.prog + 1}`}, ${BELLS[p.bells]}` +
-  `; ${FIFTHS_WORDS[p.fifths + 1]}, ${p.tempo >= 1 ? "+" : "-"}${Math.abs(Math.round((p.tempo - 1) * 100))}% tempo, ` +
+  `; ${FIFTHS_WORDS[p.fifths + 1]}${p.mode === undefined ? "" : `, resting in ${MODES[p.mode]}`}${p.voice ? `, the pot's ${VOICES[p.voice]}` : ""}${p.space ? `, a ${p.space > 0 ? "larger, wetter" : "smaller, drier"} room` : ""}, ${p.tempo >= 1 ? "+" : "-"}${Math.abs(Math.round((p.tempo - 1) * 100))}% tempo, ` +
   `a ${GROOVES[p.groove]} groove with ${SWING_WORDS[p.swing]} on ${DRUMKITS[p.drums ?? 0].name}, tuned ${KITS[p.kit]}` +
   `; ${BASS_TONES[p.bassTone ?? 0]}, a motif on ${MOTIF_SOUNDS[p.motifSound ?? 0]}` +
   `, wow ${Math.round((p.wow ?? 0.5) * 100)}%, bright ${Math.round((p.bright ?? 0.5) * 100)}%, vinyl ${Math.round((p.vinyl ?? 0.5) * 100)}%` +
@@ -406,10 +419,15 @@ export const PALETTE_NAMES = [
   "psyKickSound", "psyKickLevel", "psyThreeSound", "psyThreeLevel", "psyHandSound",
 ];
 
+const LYDIAN = MODES.indexOf("lydian");
+const lydianRoot = (root: number, scale = "") =>
+  scale.endsWith(":lydian") && ((root % 7) + 7) % 7 === 3 ? root - 2 : root;
+
 export function paletteSignals<P>(
   signal: (fn: (t: number) => number) => P,
   at: (cycle: number) => Palette,
   tides: () => Tides,
+  scale?: (cycle: number) => string,
 ) {
   const choice = (k: keyof Palette) => signal((t) => (at(Number(t))[k] as number) ?? 0);
   const chordAt = (t: number) => {
@@ -428,6 +446,12 @@ export function paletteSignals<P>(
     while (!mark(bar + n) && chordAt(bar + n).root === root) n++;
     return n;
   };
+  let scaled = { bar: NaN, scale: "" };
+  const scaleOfBar = (t: number) => {
+    const bar = Math.floor(t);
+    if (scaled.bar !== bar) scaled = { bar, scale: scale?.(bar) ?? "" };
+    return scaled.scale;
+  };
   const figure = (k: "comp" | "arp" | "ring" | "kick" | "low" | "lowLate") =>
     signal((t) => {
       const p = at(Number(t));
@@ -435,7 +459,7 @@ export function paletteSignals<P>(
     });
   return {
     ...Object.fromEntries((Object.keys(DEFAULT_PALETTE) as (keyof Palette)[]).map((k) => [k, choice(k)])),
-    root: signal((t) => chordAt(Number(t)).root),
+    root: signal((t) => (at(Number(t)).mode === LYDIAN ? lydianRoot(chordAt(Number(t)).root, scaleOfBar(Number(t))) : chordAt(Number(t)).root)),
     colour: signal((t) => chordAt(Number(t)).colour),
     chordBars: signal((t) => chordBars(Math.floor(Number(t)))),
     comp: figure("comp"),
@@ -479,7 +503,7 @@ export function paletteSignals<P>(
 
 export const STYLES = ["tape", "melody", "gen"] as const;
 export type Style = (typeof STYLES)[number];
-export const STYLE_WORDS: Record<Style, string> = { tape: "tape", melody: "melody", gen: "generative" };
+const STYLE_WORDS: Record<Style, string> = { tape: "tape", melody: "melody", gen: "generative" };
 
 export function styleWeights({ day, season }: Tides): Record<Style, number> {
   const at = season + 0.08 * Math.sin(2 * Math.PI * day);

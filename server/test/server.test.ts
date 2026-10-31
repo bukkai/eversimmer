@@ -61,8 +61,8 @@ const validator = new Validator();
 const server = potServer({
   pots: [
     POTS[0],
-    { id: "quiet", name: "Quiet", place: "Nowhere", source: () => quiet, stone: QUIET_STONE },
-    { id: "quiet-elsewhere", name: "Quiet", place: "Elsewhere", source: () => quiet, stone: QUIET_STONE },
+    { id: "quiet", name: "Quiet", place: "Nowhere", page: "meander", source: () => quiet, stone: QUIET_STONE },
+    { id: "quiet-elsewhere", name: "Quiet", place: "Elsewhere", page: "meander", source: () => quiet, stone: QUIET_STONE },
   ],
   soon: [{ name: "Later", line: "Still steeping." }],
   validator,
@@ -125,6 +125,9 @@ test("the listening statistics only open with their key", async () => {
   const res = await fetch(`http://${base}/stats?key=secret`);
   assert.equal(res.status, 200);
   assert.match(await res.text(), /places/);
+  const page = await fetch(`http://${base}/stats?key=secret`, { headers: { accept: "text/html" } });
+  assert.match(page.headers.get("content-type") ?? "", /html/);
+  assert.match(await page.text(), /<h1>/);
 });
 
 test("an address without a pot is refused", async () => {
@@ -182,10 +185,11 @@ test("talk stays in its pot, and a pot without talk ignores it and its names", a
 test("a pot under a sky shows it at its door and on connect, and a chat pot has none", async () => {
   const door = (await (await fetch(`http://${base}/door/quiet`)).json()) as Door;
   const places = [{ id: "quiet", place: "Nowhere" }, { id: "quiet-elsewhere", place: "Elsewhere" }];
-  assert.deepEqual(door, { name: "Quiet", talk: false, devControls: false, sky: SKY, places });
+  assert.deepEqual(door, { name: "Quiet", page: "meander", talk: false, devControls: false, sky: SKY, places });
   assert.deepEqual(((await (await fetch(`http://${base}/door/quiet-elsewhere`)).json()) as Door).places, places);
   const home = (await (await fetch(`http://${base}/door`)).json()) as Door;
   assert.equal(home.name, "Potluck");
+  assert.equal(home.page, "potluck");
   assert.equal(home.talk, true);
   assert.equal(home.sky, undefined);
   assert.equal(home.places, undefined);
@@ -203,20 +207,18 @@ test("the page is served at a pot's address, and health lists every pot", async 
   assert.notEqual((await fetch(`http://${base}/nowhere`)).status, 200);
 });
 
-test("a pot's page is dressed for its door, so a weather pot shows its sky from the first paint", () => {
-  const html = readFileSync(new URL("../../client/index.html", import.meta.url), "utf8");
-  const sky = dressPage(html, { name: "Quiet <b>", talk: false, devControls: false, sky: SKY });
-  assert.match(sky, /<section id="door" hidden>/);
-  assert.match(sky, /<section id="listen">/);
+test("a pot's page is dressed for its door, so its name and a weather pot's place are there from the first paint", () => {
+  const page = (name: string) => readFileSync(new URL(`../../client/${name}.html`, import.meta.url), "utf8");
+  const sky = dressPage(page("meander"), { name: "Quiet <b>", page: "meander", talk: false, devControls: false, sky: SKY });
   assert.match(sky, /<h1 id="listen-place">Nowhere</);
   assert.match(sky, /<title>Eversimmer FM · Quiet &lt;b&gt;</);
+  assert.match(sky, /<span class="pot-name">Quiet &lt;b&gt;</);
   const door = sky.match(/<script id="door-data" type="application\/json">(.*?)<\/script>/)?.[1];
   assert.equal(JSON.parse(door ?? "").name, "Quiet <b>");
   assert.doesNotMatch(door ?? "", /<b>/);
-  const chat = dressPage(html, { name: "Potluck", talk: true, devControls: false });
-  assert.match(chat, /<section id="door">/);
-  assert.match(chat, /<section id="listen" hidden>/);
-  assert.match(dressPage(html, { name: "Quiet", talk: false, devControls: true, sky: SKY }), /<section id="door">/);
+  const chat = dressPage(page("potluck"), { name: "Stew", page: "potluck", talk: true, devControls: false });
+  assert.match(chat, /<title>Eversimmer FM · Stew</);
+  assert.match(chat, /<span class="pot-name">Stew</);
 });
 
 test("the front page lists the pots that play, a pot in several places once, and those still to come", async () => {

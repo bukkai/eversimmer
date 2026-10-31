@@ -4,7 +4,7 @@ export type TempoSegment = {
   cps: number;
 };
 
-export const MAX_TEMPO_NUDGE = 0.03;
+const MAX_TEMPO_NUDGE = 0.03;
 export const TEMPO_GLIDE_PER_MINUTE = 0.03;
 
 export const nudgedCps = (base: number, energy: number) => base * (1 + MAX_TEMPO_NUDGE * (2 * energy - 1));
